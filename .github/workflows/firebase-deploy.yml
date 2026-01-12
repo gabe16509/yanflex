@@ -13,4 +13,4 @@ jobs:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
           firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_CHAVE }}'
           channelId: live
-          projectId: project0-f835d
+          projectId: yanflex-aa831
