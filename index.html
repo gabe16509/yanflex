@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nota de Entrega - Yanflex</title>
+    <title>Nota de Entrega - Yanflex (Editável)</title>
     <style>
         :root {
             --border-color: #000;
@@ -25,6 +25,7 @@
             box-sizing: border-box;
         }
 
+        /* Estilo dos campos de texto */
         input {
             border: none;
             outline: none;
@@ -33,6 +34,7 @@
             font-size: 14px;
             width: 100%;
             padding: 2px 0;
+            color: #1a1a1a;
         }
 
         /* Cabeçalho */
@@ -67,7 +69,6 @@
             line-height: 1.4;
         }
 
-        /* Título do Documento */
         .doc-title {
             text-align: center;
             background-color: #eee;
@@ -88,11 +89,12 @@
             display: flex;
             margin-bottom: 8px;
             border-bottom: 1px solid #000;
+            align-items: center;
         }
 
         .campo-linha:last-child { margin-bottom: 0; }
 
-        .label { font-weight: bold; margin-right: 5px; }
+        .label { font-weight: bold; margin-right: 5px; white-space: nowrap; }
         .flex-grow { flex-grow: 1; }
 
         /* Tabela de Itens */
@@ -103,160 +105,6 @@
 
         th, td {
             border: 1px solid var(--border-color);
-            padding: 8px;
+            padding: 5px;
             text-align: left;
-            font-size: 13px;
-        }
-
-        th {
-            background-color: #eee;
-            text-align: center;
-            font-size: 12px;
-        }
-
-        .col-quant { width: 60px; text-align: center; }
-        .col-und { width: 50px; text-align: center; }
-        .col-desc { width: auto; }
-        .col-unit { width: 100px; text-align: center; }
-        .col-total { width: 120px; text-align: center; }
-
-        /* Linhas vazias para manter a estrutura */
-        .row-item { height: 25px; }
-
-        /* Rodapé de Totais */
-        .footer-nota {
-            display: flex;
-            border-top: 2px solid var(--border-color);
-            align-items: center;
-        }
-
-        .agradecimento {
-            flex: 3;
-            padding-left: 10px;
-            font-size: 11px;
-            font-style: italic;
-            font-weight: bold;
-        }
-
-        .total-box {
-            flex: 1;
-            display: flex;
-            border-left: 2px solid var(--border-color);
-        }
-
-        .total-label {
-            background-color: #eee;
-            padding: 10px;
-            font-weight: bold;
-            border-right: 2px solid var(--border-color);
-            flex: 1;
-            text-align: center;
-        }
-
-        .total-valor {
-            flex: 1.5;
-            padding: 10px;
-            text-align: right;
-            font-weight: bold;
-        }
-
-        /* Assinatura */
-        .assinatura-container {
-            padding: 30px 10px 10px 10px;
-            text-align: center;
-        }
-
-        .linha-assinatura {
-            width: 300px;
-            border-top: 1px solid #000;
-            margin: 0 auto;
-            font-size: 10px;
-            text-transform: uppercase;
-        }
-
-        /* Esconde inputs na impressão e mostra apenas o texto (opcional) */
-        @media print {
-            body { background: none; padding: 0; }
-            .nota-container { border: 1px solid #000; }
-            input { border: none; }
-        }
-    </style>
-</head>
-<body>
-
-    <div class="nota-container">
-        <header class="header">
-            <div class="empresa-info">
-                <h1>MZ Comércio e Serviços</h1>
-                <p>YANFLEX</p>
-                <p>Mangueiras e Conexões Hidráulicas</p>
-                <p>CNPJ: 18.502.457/0001-60</p>
-            </div>
-            <div class="contato-info">
-                <strong>End:</strong> Rua N, Quadra 121 - Box 14 Área Industrial - <br>
-                Monte Dourado - PA | CEP: 68.240-00<br>
-                <strong>Fone:</strong> (96) 99122-5729<br>
-                <strong>E-mail:</strong> mzcomercioeservicos@yahoo.com.br
-            </div>
-        </header>
-
-        <div class="doc-title">Nota de Entrega</div>
-
-        <div class="cliente-section">
-            <div class="campo-linha">
-                <span class="label">Cliente:</span>
-                <span class="flex-grow"></span>
-            </div>
-            <div style="display: flex; gap: 20px;">
-                <div class="campo-linha" style="flex: 2;">
-                    <span class="label">Solicitante:</span>
-                    <span class="flex-grow"></span>
-                </div>
-                <div class="campo-linha" style="flex: 1;">
-                    <span class="label">Data de emissão:</span>
-                    <span>___/___/20___</span>
-                </div>
-            </div>
-            <div class="campo-linha">
-                <span class="label">Aplicação:</span>
-                <span class="flex-grow"></span>
-            </div>
-        </div>
-
-        <table>
-            <thead>
-                <tr>
-                    <th class="col-quant">QUANT.</th>
-                    <th class="col-und">UND.</th>
-                    <th class="col-desc">DESCRIÇÃO</th>
-                    <th class="col-unit">P. UNIT.</th>
-                    <th class="col-total">TOTAL</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr class="row-item"><td></td><td></td><td></td><td></td><td></td></tr>
-                <tr class="row-item"><td></td><td></td><td></td><td></td><td></td></tr>
-                <tr class="row-item"><td></td><td></td><td></td><td></td><td></td></tr>
-                <tr class="row-item"><td></td><td></td><td></td><td></td><td></td></tr>
-                <tr class="row-item"><td></td><td></td><td></td><td></td><td></td></tr>
-                <tr class="row-item"><td></td><td></td><td></td><td></td><td></td></tr>
-                <tr class="row-item"><td></td><td></td><td></td><td></td><td></td></tr>
-                <tr class="row-item"><td></td><td></td><td></td><td></td><td></td></tr>
-            </tbody>
-        </table>
-
-        <div class="footer-nota">
-            <div class="agradecimento">AGRADECEMOS A PREFERÊNCIA</div>
-            <div class="total-box">
-                <div class="total-label">TOTAL R$</div>
-                <div class="total-valor"></div>
-            </div>
-        </div>
-
-        <div class="assinatura-container">
-            <div class="linha-assinatura">Recebedor</div>
-        </div>
-    </div>
-
-</body>
-</html>
+            font-
