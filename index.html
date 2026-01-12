@@ -107,4 +107,173 @@
             border: 1px solid var(--border-color);
             padding: 5px;
             text-align: left;
-            font-
+            font-size: 13px;
+        }
+
+        th {
+            background-color: #eee;
+            text-align: center;
+            font-size: 12px;
+        }
+
+        .col-quant { width: 60px; text-align: center; }
+        .col-und { width: 50px; text-align: center; }
+        .col-desc { width: auto; }
+        .col-unit { width: 100px; text-align: center; }
+        .col-total { width: 120px; text-align: center; }
+
+        /* Alinhamento dos inputs na tabela */
+        td input { text-align: center; }
+        td.col-desc input { text-align: left; padding-left: 5px; }
+
+        /* Rodapé de Totais */
+        .footer-nota {
+            display: flex;
+            border-top: 2px solid var(--border-color);
+            align-items: center;
+        }
+
+        .agradecimento {
+            flex: 3;
+            padding-left: 10px;
+            font-size: 11px;
+            font-style: italic;
+            font-weight: bold;
+        }
+
+        .total-box {
+            flex: 1;
+            display: flex;
+            border-left: 2px solid var(--border-color);
+        }
+
+        .total-label {
+            background-color: #eee;
+            padding: 10px;
+            font-weight: bold;
+            border-right: 2px solid var(--border-color);
+            flex: 1;
+            text-align: center;
+        }
+
+        .total-valor {
+            flex: 1.5;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+        }
+
+        .total-valor input {
+            font-weight: bold;
+            text-align: right;
+            font-size: 16px;
+        }
+
+        /* Assinatura */
+        .assinatura-container {
+            padding: 30px 10px 10px 10px;
+            text-align: center;
+        }
+
+        .linha-assinatura {
+            width: 300px;
+            border-top: 1px solid #000;
+            margin: 0 auto;
+            font-size: 10px;
+            text-transform: uppercase;
+        }
+
+        /* Configurações para Impressão */
+        @media print {
+            body { background: none; padding: 0; }
+            .nota-container { border: 1px solid #000; width: 100%; }
+            input { border: none; }
+            .campo-linha { border-bottom: 1px solid #000; } /* Garante que a linha apareça na impressão */
+        }
+    </style>
+</head>
+<body>
+
+    <div class="nota-container">
+        <header class="header">
+            <div class="empresa-info">
+                <h1>MZ Comércio e Serviços</h1>
+                <p>YANFLEX</p>
+                <p>Mangueiras e Conexões Hidráulicas</p>
+                <p>CNPJ: 18.502.457/0001-60</p>
+            </div>
+            <div class="contato-info">
+                <strong>End:</strong> Rua N, Quadra 121 - Box 14 Área Industrial - <br>
+                Monte Dourado - PA | CEP: 68.240-00<br>
+                <strong>Fone:</strong> (96) 99122-5729<br>
+                <strong>E-mail:</strong> mzcomercioeservicos@yahoo.com.br
+            </div>
+        </header>
+
+        <div class="doc-title">Nota de Entrega</div>
+
+        <div class="cliente-section">
+            <div class="campo-linha">
+                <span class="label">Cliente:</span>
+                <input type="text" class="flex-grow">
+            </div>
+            <div style="display: flex; gap: 20px;">
+                <div class="campo-linha" style="flex: 2;">
+                    <span class="label">Solicitante:</span>
+                    <input type="text" class="flex-grow">
+                </div>
+                <div class="campo-linha" style="flex: 1;">
+                    <span class="label">Data de emissão:</span>
+                    <input type="text" placeholder="__/__/20__" style="width: 100px;">
+                </div>
+            </div>
+            <div class="campo-linha">
+                <span class="label">Aplicação:</span>
+                <input type="text" class="flex-grow">
+            </div>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th class="col-quant">QUANT.</th>
+                    <th class="col-und">UND.</th>
+                    <th class="col-desc">DESCRIÇÃO</th>
+                    <th class="col-unit">P. UNIT.</th>
+                    <th class="col-total">TOTAL</th>
+                </tr>
+            </thead>
+            <tbody>
+                <script>
+                    for (let i = 0; i < 10; i++) {
+                        document.write(`
+                            <tr>
+                                <td class="col-quant"><input type="text"></td>
+                                <td class="col-und"><input type="text"></td>
+                                <td class="col-desc"><input type="text"></td>
+                                <td class="col-unit"><input type="text"></td>
+                                <td class="col-total"><input type="text"></td>
+                            </tr>
+                        `);
+                    }
+                </script>
+            </tbody>
+        </table>
+
+        <div class="footer-nota">
+            <div class="agradecimento">AGRADECEMOS A PREFERÊNCIA</div>
+            <div class="total-box">
+                <div class="total-label">TOTAL R$</div>
+                <div class="total-valor">
+                    <input type="text" placeholder="0,00">
+                </div>
+            </div>
+        </div>
+
+        <div class="assinatura-container">
+            <div class="linha-assinatura">Recebedor</div>
+        </div>
+    </div>
+
+</body>
+</html>
