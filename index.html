@@ -15,20 +15,7 @@
 <body>
 
     <div class="nota-container">
-        <header class="header">
-            <div class="empresa-info">
-                <h1>MZ Comércio e Serviços</h1>
-                <p>YANFLEX</p>
-                <p>Mangueiras e Conexões Hidráulicas</p>
-                <p>CNPJ: 18.502.457/0001-60</p>
-            </div>
-            <div class="contato-info">
-                <strong>End:</strong> Rua N, Quadra 121 - Box 14 Área Industrial - <br>
-                Monte Dourado - PA | CEP: 68.240-00<br>
-                <strong>Fone:</strong> (96) 99122-5729<br>
-                <strong>E-mail:</strong> mzcomercioeservicos@yahoo.com.br
-            </div>
-        </header>
+      
 
         <div class="doc-title">Nota de Entrega</div>
 
@@ -94,6 +81,21 @@
             <div class="linha-assinatura">Recebedor</div>
         </div>
     </div>
+<script>
+    
+    const firebaseConfig = {
+        databaseURL: "https://yanflex-aa831-default-rtdb.firebaseio.com"
+    }
 
+    firebase.initializeApp(firebaseConfig)
+    const db = firebase.database();
+
+    const nota = db.ref('notas');
+    
+    
+
+
+    
+</script>
 </body>
 </html>
