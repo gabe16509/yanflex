@@ -97,34 +97,8 @@
   firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
 
-  // Função para salvar a nota
-  function salvarNotaNoFirebase() {
-    // 1. Capturar dados dos campos principais
-    const cliente = document.querySelector('.cliente-section input:nth-child(2)').value;
-    const solicitante = document.querySelectorAll('.cliente-section input')[1].value;
-    const dataEmissao = document.querySelectorAll('.cliente-section input')[2].value;
-    const total = document.querySelector('.total-valor input').value;
-
-    // 2. Criar o objeto da nota
-    const novaNota = {
-      cliente: cliente,
-      solicitante: solicitante,
-      data: dataEmissao,
-      valorTotal: total,
-      dataRegistro: new Date().toISOString()
-    };
-
     // 3. Salvar no Firebase
     const notasRef = db.ref('notas');
-    notasRef.push(novaNota)
-      .then(() => {
-        alert("Nota salva com sucesso!");
-      })
-      .catch((error) => {
-        console.error("Erro ao salvar:", error);
-        alert("Erro ao salvar: " + error.message);
-      });
-  }
     
 </script>
     
