@@ -99,7 +99,7 @@
 
     // 3. Salvar no Firebase
     const notasRef = db.ref('notas');
-    notasRef.push({
+    notasRef.set({
   cliente: "João Silva",
   valor: 150.00
 });
