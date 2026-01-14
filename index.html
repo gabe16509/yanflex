@@ -14,31 +14,20 @@
 </head>
 <body>
 
-    <div class="nota-container">
-      
-
-        <div class="doc-title">Nota de Entrega</div>
-
-        <div class="cliente-section">
-            <div class="campo-linha">
+    <div class="nota-container">   
+        
                 <span class="label">Cliente:</span>
-                <input type="text" class="flex-grow">
-            </div>
-            <div style="display: flex; gap: 20px;">
-                <div class="campo-linha" style="flex: 2;">
+                <input type="text" class="flex-grow" value="Gabson" id="clienteInput">
+            <br>
                     <span class="label">Solicitante:</span>
-                    <input type="text" class="flex-grow">
-                </div>
-                <div class="campo-linha" style="flex: 1;">
+                    <input type="text" class="flex-grow" value="teste2">
+            <br>
                     <span class="label">Data de emissão:</span>
                     <input type="text" placeholder="__/__/20__" style="width: 100px;">
-                </div>
-            </div>
-            <div class="campo-linha">
+            <br>
                 <span class="label">Aplicação:</span>
                 <input type="text" class="flex-grow">
-            </div>
-        </div>
+            <br>
 
         <table>
             <thead>
@@ -97,11 +86,12 @@
   firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
 
+    const cliente = document.getElementById('clienteInput').value;
+
     // 3. Salvar no Firebase
     const notasRef = db.ref('notas');
-    notasRef.set({
-  cliente: "João Silva",
-  valor: 150.00
+     notasRef.set({
+  cliente: cliente,
 });
     
 </script>
