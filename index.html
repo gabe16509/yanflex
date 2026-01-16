@@ -3,98 +3,190 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nota de Entrega - Yanflex (Editável)</title>
-    
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
-    
-    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-auth-compat.js"></script>    
+    <title>Sistema Yanflex - Profissional</title>
+    <style>
+        :root { --border-color: #000; --accent-color: #007bff; }
+        * { box-sizing: border-box; }
+        
+        /* Ajuste de largura para A4 (aprox. 790px para escala 100%) */
+        body { font-family: Arial, sans-serif; display: flex; flex-direction: column; align-items: center; padding: 10px; background-color: #f4f4f4; margin: 0; }
+        .wrapper { width: 790px; background-color: #fff; }
+
+        .header-fixo { display: flex; background-color: #fff; border: 2px solid var(--border-color); width: 100%; margin-bottom: 15px; }
+        .empresa-info { flex: 1.5; padding: 8px; text-align: center; border-right: 2px solid var(--border-color); }
+        .empresa-info h1 { font-size: 17px; margin: 0; text-transform: uppercase; }
+        .empresa-info p { font-size: 13px; margin: 2px 0; font-weight: bold; }
+        .contato-info { flex: 1; padding: 8px; font-size: 11px; line-height: 1.3; }
+
+        .tabs-nav { display: flex; gap: 5px; padding-left: 5px; width: 790px; }
+        .tab-btn { padding: 8px 20px; cursor: pointer; border: 2px solid var(--border-color); border-bottom: none; background: #d1d1d1; font-weight: bold; text-transform: uppercase; font-size: 11px; border-radius: 6px 6px 0 0; }
+        .tab-btn.active { background: #fff; position: relative; z-index: 2; margin-bottom: -2px; }
+
+        .content-container { background-color: #fff; border: 2px solid var(--border-color); width: 100%; min-height: 600px; position: relative; z-index: 1; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .section-padding { padding: 15px; }
+
+        .campo-linha { display: flex; margin-bottom: 10px; border-bottom: 1px solid #000; }
+        .label { font-weight: bold; margin-right: 5px; white-space: nowrap; font-size: 13px; }
+        input { border: none; outline: none; background: transparent; font-family: inherit; font-size: 14px; width: 100%; padding: 2px; }
+        
+        /* REMOVER INCREMENTO (SETAS) DOS INPUTS */
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type=number] { -moz-appearance: textfield; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; table-layout: fixed; }
+        th, td { border: 1px solid var(--border-color); padding: 6px; font-size: 12px; text-align: center; word-wrap: break-word; }
+        th { background-color: #eee; font-weight: bold; }
+        .row-item { height: 32px; }
+        
+        /* DESTAQUE DA LINHA DE ENTRADA */
+        .linha-entrada { background-color: #f0f7ff; border-bottom: 2px solid var(--accent-color) !important; }
+        .linha-entrada input { font-weight: bold; text-align: center; font-size: 13px; }
+        .linha-entrada input::placeholder { color: #888; font-weight: normal; font-style: italic; font-size: 11px; }
+
+        .col-acao { width: 35px; border: none !important; background: transparent !important; }
+        .btn-add { background-color: var(--accent-color); color: white; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; font-weight: bold; font-size: 16px; display: flex; align-items: center; justify-content: center; }
+        
+        .controles { margin-top: 20px; display: flex; gap: 10px; justify-content: center; }
+        .btn-acao { padding: 10px 25px; font-weight: bold; cursor: pointer; border: 2px solid #000; background: #fff; text-transform: uppercase; }
+        .btn-print { background: #000; color: #fff; }
+
+        @media print { 
+            @page { margin: 1cm; }
+            body { background-color: #fff; padding: 0; }
+            .wrapper { width: 100%; border: none; }
+            .tabs-nav, .controles, .col-acao, .btn-add, .linha-entrada { display: none !important; } 
+            .content-container { border: 2px solid #000; }
+        }
+    </style>
 </head>
 <body>
 
-    <div class="nota-container">   
-        
-                <span class="label">Cliente:</span>
-                <input type="text" class="flex-grow" value="Gabson" id="clienteInput">
-            <br>
-                    <span class="label">Solicitante:</span>
-                    <input type="text" class="flex-grow" value="teste2">
-            <br>
-                    <span class="label">Data de emissão:</span>
-                    <input type="text" placeholder="__/__/20__" style="width: 100px;">
-            <br>
-                <span class="label">Aplicação:</span>
-                <input type="text" class="flex-grow">
-            <br>
+    <div class="wrapper">
+        <header class="header-fixo">
+            <div class="empresa-info">
+                <h1>MZ Comércio e Serviços</h1>
+                <p>YANFLEX</p>
+                <p>Mangueiras e Conexões Hidráulicas</p>
+                <p>CNPJ: 18.502.457/0001-60</p>
+            </div>
+            <div class="contato-info">
+                <strong>End:</strong> Rua N, Quadra 121 - Box 14 Área Industrial<br>
+                Monte Dourado - PA | CEP: 68.240-00<br>
+                <strong>Fone:</strong> (96) 99122-5729
+            </div>
+        </header>
 
-        <table>
-            <thead>
-                <tr>
-                    <th class="col-quant">QUANT.</th>
-                    <th class="col-und">UND.</th>
-                    <th class="col-desc">DESCRIÇÃO</th>
-                    <th class="col-unit">P. UNIT.</th>
-                    <th class="col-total">TOTAL</th>
-                </tr>
-            </thead>
-            <tbody>
-                <script>
-                    for (let i = 0; i < 10; i++) {
-                        document.write(`
+        <nav class="tabs-nav">
+            <button class="tab-btn active" onclick="abrirAba(event, 'aba-nota')">Nota de Entrega</button>
+            <button class="tab-btn">Clientes</button>
+            <button class="tab-btn">Produtos</button>
+        </nav>
+
+        <div class="content-container">
+            <div id="aba-nota" class="tab-content active">
+                <div class="section-padding">
+                    <div class="campo-linha"><span class="label">Cliente:</span><input type="text" id="clienteInput"></div>
+                    <div class="campo-linha"><span class="label">Aplicação:</span><input type="text"></div>
+                    
+                    <div style="display: flex; gap: 15px;">
+                        <div class="campo-linha" style="flex: 2;"><span class="label">Solicitante:</span><input type="text"></div>
+                        <div class="campo-linha" style="flex: 1;"><span class="label">Data:</span><input type="text" value="15/01/2026"></div>
+                    </div>
+
+                    <div style="display: flex; gap: 15px;">
+                        <div class="campo-linha" style="flex: 2;"><span class="label">Qtd Itens:</span><input type="text" readonly id="totalItensQtd" value="0"></div>
+                        <div class="campo-linha" style="flex: 1;"><span class="label">Total Nota:</span><input type="text" readonly id="valorTotalNota" value="0,00"></div>
+                    </div>
+
+                    <table>
+                        <thead>
                             <tr>
-                                <td class="col-quant"><input type="text"></td>
-                                <td class="col-und"><input type="text"></td>
-                                <td class="col-desc"><input type="text"></td>
-                                <td class="col-unit"><input type="text"></td>
-                                <td class="col-total"><input type="text"></td>
+                                <th style="width: 70px;">Qtd</th>
+                                <th style="width: 60px;">Unid.</th>
+                                <th>Descrição</th>
+                                <th style="width: 100px;">Preço Unit.</th>
+                                <th style="width: 100px;">Total Item</th>
+                                <th class="col-acao"></th> 
                             </tr>
-                        `);
-                    }
-                </script>
-            </tbody>
-        </table>
-
-        <div class="footer-nota">
-            <div class="agradecimento">AGRADECEMOS A PREFERÊNCIA</div>
-            <div class="total-box">
-                <div class="total-label">TOTAL R$</div>
-                <div class="total-valor">
-                    <input type="text" placeholder="0,00">
+                        </thead>
+                        <tbody id="corpoTabela">
+                            <tr class="row-item linha-entrada" id="linhaEntrada">
+                                <td><input type="number" id="inQtd" oninput="calcularItemEntrada()" placeholder="0"></td>
+                                <td><input type="text" id="inUn" placeholder="PÇ"></td>
+                                <td><input type="text" id="inDesc" placeholder="Novo produto..."></td>
+                                <td><input type="number" id="inPreco" oninput="calcularItemEntrada()" placeholder="0.00"></td>
+                                <td><input type="text" id="inTotal" readonly value="0,00"></td>
+                                <td class="col-acao">
+                                    <button class="btn-add" onclick="adicionarLinha()" title="Adicionar">+</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
-        </div>
-
-        <div class="assinatura-container">
-            <div class="linha-assinatura">Recebedor</div>
-        </div>
+        </div> 
     </div>
 
-<script>
-  // Inicialização (usando o modo compat que você importou no head)
-  const firebaseConfig = {
-    apiKey: "AIzaSyD84TNeKpXJb9sIaJGucg9mTWSuEKudkXY",
-    authDomain: "yanflex-aa831.firebaseapp.com",
-    databaseURL: "https://yanflex-aa831-default-rtdb.firebaseio.com",
-    projectId: "yanflex-aa831",
-    storageBucket: "yanflex-aa831.firebasestorage.app",
-    messagingSenderId: "681248148266",
-    appId: "1:681248148266:web:cdd077e4f6590d20b82c53"
-  };
+    <div class="controles">
+        <button class="btn-acao btn-print" onclick="window.print()">Imprimir Nota</button>
+        <button class="btn-acao" onclick="location.reload()">Limpar Tudo</button>
+    </div>
 
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.database();
+    <script>
+        function calcularItemEntrada() {
+            const qtd = parseFloat(document.getElementById('inQtd').value) || 0;
+            const preco = parseFloat(document.getElementById('inPreco').value) || 0;
+            const total = qtd * preco;
+            document.getElementById('inTotal').value = total.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+        }
 
-    const cliente = document.getElementById('clienteInput').value;
+        function adicionarLinha() {
+            const inQtd = document.getElementById('inQtd');
+            const inUn = document.getElementById('inUn');
+            const inDesc = document.getElementById('inDesc');
+            const inPreco = document.getElementById('inPreco');
+            const inTotal = document.getElementById('inTotal');
 
-    // 3. Salvar no Firebase
-    const notasRef = db.ref('notas');
-     notasRef.set({
-  cliente: cliente,
-});
-    
-</script>
-    
+            if (inDesc.value === "" || inQtd.value === "") {
+                alert("Preencha descrição e quantidade!");
+                return;
+            }
+
+            const novaLinha = document.createElement('tr');
+            novaLinha.className = 'row-item item-salvo';
+            novaLinha.innerHTML = `
+                <td>${inQtd.value}</td>
+                <td>${inUn.value}</td>
+                <td style="text-align: left; padding-left: 8px;">${inDesc.value}</td>
+                <td>${parseFloat(inPreco.value || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                <td class="valor-item-total">${inTotal.value}</td>
+                <td class="col-acao"><button onclick="this.parentElement.parentElement.remove(); atualizarResumo()" style="cursor:pointer; border:none; background:none; color:red; font-weight:bold;">✕</button></td>
+            `;
+
+            document.getElementById('linhaEntrada').after(novaLinha);
+
+            inQtd.value = ""; inUn.value = ""; inDesc.value = ""; inPreco.value = ""; inTotal.value = "0,00";
+            inQtd.focus();
+            atualizarResumo();
+        }
+
+        function atualizarResumo() {
+            const itens = document.querySelectorAll('.item-salvo');
+            document.getElementById('totalItensQtd').value = itens.length;
+            let somaTotal = 0;
+            itens.forEach(linha => {
+                const valorTexto = linha.querySelector('.valor-item-total').innerText.replace(/\./g, '').replace(',', '.');
+                somaTotal += parseFloat(valorTexto) || 0;
+            });
+            document.getElementById('valorTotalNota').value = somaTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        }
+
+        function abrirAba(evt, abaNome) {
+            // Lógica de abas pode ser inserida aqui
+        }
+    </script>
 </body>
 </html>
