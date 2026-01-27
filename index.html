@@ -4,11 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema Yanflex - Profissional</title>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+    
     <style>
         :root { --border-color: #000; --accent-color: #007bff; }
         * { box-sizing: border-box; }
         
-        /* Ajuste de largura para A4 (aprox. 790px para escala 100%) */
         body { font-family: Arial, sans-serif; display: flex; flex-direction: column; align-items: center; padding: 10px; background-color: #f4f4f4; margin: 0; }
         .wrapper { width: 790px; background-color: #fff; }
 
@@ -23,41 +25,28 @@
         .tab-btn.active { background: #fff; position: relative; z-index: 2; margin-bottom: -2px; }
 
         .content-container { background-color: #fff; border: 2px solid var(--border-color); width: 100%; min-height: 600px; position: relative; z-index: 1; }
-        .tab-content { display: none; }
+        .tab-content { display: none; padding: 20px; }
         .tab-content.active { display: block; }
-        .section-padding { padding: 15px; }
-
-        .campo-linha { display: flex; margin-bottom: 10px; border-bottom: 1px solid #000; }
-        .label { font-weight: bold; margin-right: 5px; white-space: nowrap; font-size: 13px; }
-        input { border: none; outline: none; background: transparent; font-family: inherit; font-size: 14px; width: 100%; padding: 2px; }
         
-        /* REMOVER INCREMENTO (SETAS) DOS INPUTS */
-        input::-webkit-outer-spin-button,
-        input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-        input[type=number] { -moz-appearance: textfield; }
+        .form-papel { display: flex; gap: 20px; align-items: flex-end; }
+        .campo-linha { display: flex; border-bottom: 1px solid #000; flex: 1; align-items: flex-end; padding-bottom: 2px; }
+        .label { font-weight: bold; font-size: 13px; margin-right: 8px; text-transform: uppercase; }
+        .form-papel input { border: none; outline: none; background: transparent; font-family: inherit; font-size: 14px; width: 100%; }
 
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; table-layout: fixed; }
-        th, td { border: 1px solid var(--border-color); padding: 6px; font-size: 12px; text-align: center; word-wrap: break-word; }
-        th { background-color: #eee; font-weight: bold; }
-        .row-item { height: 32px; }
-        
-        /* DESTAQUE DA LINHA DE ENTRADA */
-        .linha-entrada { background-color: #f0f7ff; border-bottom: 2px solid var(--accent-color) !important; }
-        .linha-entrada input { font-weight: bold; text-align: center; font-size: 13px; }
-        .linha-entrada input::placeholder { color: #888; font-weight: normal; font-style: italic; font-size: 11px; }
+        .lista-dados { margin-top: 30px; border-top: 1px dashed #ccc; padding-top: 10px; }
+        .item-lista { display: flex; justify-content: space-between; padding: 8px; border-bottom: 1px solid #eee; font-size: 14px; cursor: pointer; transition: background 0.2s; }
+        .item-lista:hover { background-color: #f9f9f9; }
+        .item-lista.selecionado { background-color: #e7f3ff; border-left: 5px solid var(--accent-color); font-weight: bold; }
 
-        .col-acao { width: 35px; border: none !important; background: transparent !important; }
-        .btn-add { background-color: var(--accent-color); color: white; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; font-weight: bold; font-size: 16px; display: flex; align-items: center; justify-content: center; }
-        
         .controles { margin-top: 20px; display: flex; gap: 10px; justify-content: center; }
         .btn-acao { padding: 10px 25px; font-weight: bold; cursor: pointer; border: 2px solid #000; background: #fff; text-transform: uppercase; }
-        .btn-print { background: #000; color: #fff; }
+        .btn-add { background: #000; color: #fff; padding: 5px 15px; cursor: pointer; border: none; text-transform: uppercase; font-size: 11px; font-weight: bold; }
 
         @media print { 
             @page { margin: 1cm; }
             body { background-color: #fff; padding: 0; }
             .wrapper { width: 100%; border: none; }
-            .tabs-nav, .controles, .col-acao, .btn-add, .linha-entrada { display: none !important; } 
+            .tabs-nav, .controles, .btn-add { display: none !important; } 
             .content-container { border: 2px solid #000; }
         }
     </style>
@@ -80,112 +69,228 @@
         </header>
 
         <nav class="tabs-nav">
-            <button class="tab-btn active" onclick="abrirAba(event, 'aba-nota')">Nota de Entrega</button>
-            <button class="tab-btn">Clientes</button>
-            <button class="tab-btn">Produtos</button>
+            <button id="btn-tab-clientes" class="tab-btn active" onclick="abrirAba(event, 'clientes')">Clientes</button>
+            <button id="btn-tab-notas" class="tab-btn" onclick="abrirAba(event, 'notas')">Notas</button>
+            <button id="btn-tab-produtos" class="tab-btn" onclick="abrirAba(event, 'produtos')">Produtos</button>
         </nav>
 
         <div class="content-container">
-            <div id="aba-nota" class="tab-content active">
-                <div class="section-padding">
-                    <div class="campo-linha"><span class="label">Cliente:</span><input type="text" id="clienteInput"></div>
-                    <div class="campo-linha"><span class="label">Aplicação:</span><input type="text"></div>
-                    
-                    <div style="display: flex; gap: 15px;">
-                        <div class="campo-linha" style="flex: 2;"><span class="label">Solicitante:</span><input type="text"></div>
-                        <div class="campo-linha" style="flex: 1;"><span class="label">Data:</span><input type="text" value="15/01/2026"></div>
+            <div id="clientes" class="tab-content active">
+                <div class="form-papel">
+                    <div class="campo-linha">
+                        <span class="label">Nome:</span>
+                        <input type="text" id="cli-nome">
                     </div>
-
-                    <div style="display: flex; gap: 15px;">
-                        <div class="campo-linha" style="flex: 2;"><span class="label">Qtd Itens:</span><input type="text" readonly id="totalItensQtd" value="0"></div>
-                        <div class="campo-linha" style="flex: 1;"><span class="label">Total Nota:</span><input type="text" readonly id="valorTotalNota" value="0,00"></div>
+                    <div class="campo-linha" style="max-width: 200px;">
+                        <span class="label">Telefone:</span>
+                        <input type="text" id="cli-fone" placeholder="(00) 00000-0000">
                     </div>
-
-                    <table>
-                        <thead>
-                            <tr>
-                                <th style="width: 70px;">Qtd</th>
-                                <th style="width: 60px;">Unid.</th>
-                                <th>Descrição</th>
-                                <th style="width: 100px;">Preço Unit.</th>
-                                <th style="width: 100px;">Total Item</th>
-                                <th class="col-acao"></th> 
-                            </tr>
-                        </thead>
-                        <tbody id="corpoTabela">
-                            <tr class="row-item linha-entrada" id="linhaEntrada">
-                                <td><input type="number" id="inQtd" oninput="calcularItemEntrada()" placeholder="0"></td>
-                                <td><input type="text" id="inUn" placeholder="PÇ"></td>
-                                <td><input type="text" id="inDesc" placeholder="Novo produto..."></td>
-                                <td><input type="number" id="inPreco" oninput="calcularItemEntrada()" placeholder="0.00"></td>
-                                <td><input type="text" id="inTotal" readonly value="0,00"></td>
-                                <td class="col-acao">
-                                    <button class="btn-add" onclick="adicionarLinha()" title="Adicionar">+</button>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    <button class="btn-add" onclick="adicionarCliente()">Adicionar</button>
                 </div>
+                <div class="lista-dados" id="lista-clientes"></div>
+            </div>
+
+            <div id="notas" class="tab-content">
+                <h3 id="nota-cliente-info" style="margin-top: 0; color: var(--accent-color);">Nenhum cliente selecionado</h3>
+                <div class="form-papel">
+                    <div class="campo-linha">
+                        <span class="label">Data:</span>
+                        <input type="date" id="nota-data">
+                    </div>
+                    <button class="btn-add" onclick="adicionarNota()">Salvar Nota</button>
+                </div>
+                <div class="lista-dados" id="lista-notas"></div>
+            </div>
+            
+            <div id="produtos" class="tab-content">
+                <h3 id="produto-nota-info" style="margin-top: 0; color: var(--accent-color);">Nenhuma nota selecionada</h3>
+                <div class="form-papel">
+                    <div class="campo-linha">
+                        <span class="label">Descrição:</span>
+                        <input type="text" id="prod-desc">
+                    </div>
+                    <div class="campo-linha" style="max-width: 150px;">
+                        <span class="label">Preço:</span>
+                        <input type="text" id="prod-preco" placeholder="0.00">
+                    </div>
+                    <button class="btn-add" onclick="adicionarProduto()">Adicionar</button>
+                </div>
+                <div class="lista-dados" id="lista-produtos"></div>
             </div>
         </div> 
     </div>
 
     <div class="controles">
-        <button class="btn-acao btn-print" onclick="window.print()">Imprimir Nota</button>
         <button class="btn-acao" onclick="location.reload()">Limpar Tudo</button>
     </div>
 
     <script>
-        function calcularItemEntrada() {
-            const qtd = parseFloat(document.getElementById('inQtd').value) || 0;
-            const preco = parseFloat(document.getElementById('inPreco').value) || 0;
-            const total = qtd * preco;
-            document.getElementById('inTotal').value = total.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
-        }
+        const firebaseConfig = {
+            apiKey: "AIzaSyD84TNeKpXJb9sIaJGucg9mTWSuEKudkXY",
+            authDomain: "yanflex-aa831.firebaseapp.com",
+            databaseURL: "https://yanflex-aa831-default-rtdb.firebaseio.com",
+            projectId: "yanflex-aa831",
+            storageBucket: "yanflex-aa831.firebasestorage.app",
+            messagingSenderId: "681248148266",
+            appId: "1:681248148266:web:cdd077e4f6590d20b82c53",
+            measurementId: "G-E2SKKRTSWJ"
+        };
 
-        function adicionarLinha() {
-            const inQtd = document.getElementById('inQtd');
-            const inUn = document.getElementById('inUn');
-            const inDesc = document.getElementById('inDesc');
-            const inPreco = document.getElementById('inPreco');
-            const inTotal = document.getElementById('inTotal');
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
 
-            if (inDesc.value === "" || inQtd.value === "") {
-                alert("Preencha descrição e quantidade!");
+        let clienteSelecionado = null;
+        let notaSelecionada = null;
+
+        // Define a data atual no input
+        document.getElementById('nota-data').valueAsDate = new Date();
+
+        function abrirAba(evt, abaNome) {
+            if (abaNome === 'notas' && !clienteSelecionado) {
+                alert("Por favor, selecione um cliente primeiro!");
+                return;
+            }
+            if (abaNome === 'produtos' && !notaSelecionada) {
+                alert("Por favor, selecione uma nota primeiro!");
                 return;
             }
 
-            const novaLinha = document.createElement('tr');
-            novaLinha.className = 'row-item item-salvo';
-            novaLinha.innerHTML = `
-                <td>${inQtd.value}</td>
-                <td>${inUn.value}</td>
-                <td style="text-align: left; padding-left: 8px;">${inDesc.value}</td>
-                <td>${parseFloat(inPreco.value || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-                <td class="valor-item-total">${inTotal.value}</td>
-                <td class="col-acao"><button onclick="this.parentElement.parentElement.remove(); atualizarResumo()" style="cursor:pointer; border:none; background:none; color:red; font-weight:bold;">✕</button></td>
-            `;
+            if (abaNome === 'notas') carregarNotas();
+            if (abaNome === 'produtos') carregarProdutos();
 
-            document.getElementById('linhaEntrada').after(novaLinha);
-
-            inQtd.value = ""; inUn.value = ""; inDesc.value = ""; inPreco.value = ""; inTotal.value = "0,00";
-            inQtd.focus();
-            atualizarResumo();
+            var i, tabcontent, tablinks;
+            tabcontent = document.getElementsByClassName("tab-content");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+                tabcontent[i].classList.remove("active");
+            }
+            tablinks = document.getElementsByClassName("tab-btn");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].classList.remove("active");
+            }
+            document.getElementById(abaNome).style.display = "block";
+            document.getElementById(abaNome).classList.add("active");
+            
+            const target = evt.currentTarget || document.getElementById('btn-tab-' + abaNome);
+            target.classList.add("active");
         }
 
-        function atualizarResumo() {
-            const itens = document.querySelectorAll('.item-salvo');
-            document.getElementById('totalItensQtd').value = itens.length;
-            let somaTotal = 0;
-            itens.forEach(linha => {
-                const valorTexto = linha.querySelector('.valor-item-total').innerText.replace(/\./g, '').replace(',', '.');
-                somaTotal += parseFloat(valorTexto) || 0;
+        function selecionarCliente(id, nome) {
+            clienteSelecionado = { id, nome };
+            notaSelecionada = null;
+            document.getElementById('nota-cliente-info').innerText = "Notas para: " + nome;
+            document.getElementById('produto-nota-info').innerText = "Nenhuma nota selecionada";
+            const itens = document.querySelectorAll('#lista-clientes .item-lista');
+            itens.forEach(item => item.classList.remove('selecionado'));
+            event.currentTarget.classList.add('selecionado');
+        }
+
+        function selecionarNota(id, dataNota) {
+            notaSelecionada = { id, dataNota };
+            document.getElementById('produto-nota-info').innerText = "Produtos da Nota: " + dataNota;
+            const itens = document.querySelectorAll('#lista-notas .item-lista');
+            itens.forEach(item => item.classList.remove('selecionado'));
+            event.currentTarget.classList.add('selecionado');
+        }
+
+        function adicionarNota() {
+            const dataNota = document.getElementById('nota-data').value;
+            if (!dataNota) return alert("Preencha a Data da nota!");
+
+            database.ref('notas/' + clienteSelecionado.id).push({
+                dataNota, total: "0.00"
+            }).then(() => {
+                document.getElementById('nota-data').valueAsDate = new Date();
             });
-            document.getElementById('valorTotalNota').value = somaTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
         }
 
-        function abrirAba(evt, abaNome) {
-            // Lógica de abas pode ser inserida aqui
+        function carregarNotas() {
+            database.ref('notas/' + clienteSelecionado.id).on('value', (snapshot) => {
+                const lista = document.getElementById('lista-notas');
+                lista.innerHTML = "";
+                snapshot.forEach((child) => {
+                    const nota = child.val();
+                    const item = document.createElement('div');
+                    item.className = 'item-lista';
+                    if(notaSelecionada && notaSelecionada.id === child.key) item.classList.add('selecionado');
+                    item.onclick = (e) => selecionarNota(child.key, nota.dataNota);
+                    item.ondblclick = (e) => {
+                        selecionarNota(child.key, nota.dataNota);
+                        abrirAba({currentTarget: document.getElementById('btn-tab-produtos')}, 'produtos');
+                    };
+                    item.innerHTML = `<span>Data: ${nota.dataNota}</span> <strong>Total: R$ ${nota.total}</strong>`;
+                    lista.appendChild(item);
+                });
+            });
+        }
+
+        function adicionarCliente() {
+            const nome = document.getElementById('cli-nome').value;
+            const fone = document.getElementById('cli-fone').value;
+            if (!nome || !fone) return alert("Preencha Nome e Telefone!");
+            database.ref('clientes').push({ nome, fone }).then(() => {
+                document.getElementById('cli-nome').value = "";
+                document.getElementById('cli-fone').value = "";
+            });
+        }
+
+        database.ref('clientes').on('value', (snapshot) => {
+            const lista = document.getElementById('lista-clientes');
+            lista.innerHTML = "";
+            snapshot.forEach((child) => {
+                const cli = child.val();
+                const item = document.createElement('div');
+                item.className = 'item-lista';
+                if(clienteSelecionado && clienteSelecionado.id === child.key) item.classList.add('selecionado');
+                item.onclick = (e) => selecionarCliente(child.key, cli.nome);
+                item.ondblclick = (e) => {
+                    selecionarCliente(child.key, cli.nome);
+                    abrirAba({currentTarget: document.getElementById('btn-tab-notas')}, 'notas');
+                };
+                item.innerHTML = `<span>${cli.nome}</span> <strong>${cli.fone}</strong>`;
+                lista.appendChild(item);
+            });
+        });
+
+        function adicionarProduto() {
+            const desc = document.getElementById('prod-desc').value;
+            const precoStr = document.getElementById('prod-preco').value.replace(',', '.');
+            const preco = parseFloat(precoStr);
+
+            if (!desc || isNaN(preco)) return alert("Preencha Descrição e Preço corretamente!");
+            
+            database.ref('produtos/' + notaSelecionada.id).push({ 
+                descricao: desc, 
+                preco: preco.toFixed(2) 
+            }).then(() => {
+                document.getElementById('prod-desc').value = "";
+                document.getElementById('prod-preco').value = "";
+                
+                database.ref('produtos/' + notaSelecionada.id).once('value', (snapshot) => {
+                    let soma = 0;
+                    snapshot.forEach(child => {
+                        soma += parseFloat(child.val().preco);
+                    });
+                    database.ref('notas/' + clienteSelecionado.id + '/' + notaSelecionada.id).update({
+                        total: soma.toFixed(2)
+                    });
+                });
+            });
+        }
+
+        function carregarProdutos() {
+            database.ref('produtos/' + notaSelecionada.id).on('value', (snapshot) => {
+                const lista = document.getElementById('lista-produtos');
+                lista.innerHTML = "";
+                snapshot.forEach((child) => {
+                    const prod = child.val();
+                    const item = document.createElement('div');
+                    item.className = 'item-lista';
+                    item.style.cursor = "default";
+                    item.innerHTML = `<span>${prod.descricao}</span> <strong>R$ ${prod.preco}</strong>`;
+                    lista.appendChild(item);
+                });
+            });
         }
     </script>
 </body>
