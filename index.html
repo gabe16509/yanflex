@@ -28,6 +28,12 @@
         .tab-content { display: none; padding: 20px; }
         .tab-content.active { display: block; }
         
+        .header-meta-notas { border: 1px solid #000; padding: 10px; margin-bottom: 20px; background: #fff; }
+        .meta-linha { border-bottom: 1px dotted #000; margin-bottom: 5px; padding-bottom: 2px; }
+        .meta-label { font-weight: bold; font-size: 12px; text-transform: uppercase; color: #000; margin-right: 5px; }
+        .meta-valor { font-family: 'Courier New', Courier, monospace; font-size: 14px; color: #000; text-transform: uppercase; }
+        .meta-resumo-aberto { display: block; font-size: 13px; font-weight: bold; color: #d9534f; margin-top: 5px; }
+
         .form-papel { display: flex; gap: 20px; align-items: flex-end; }
         .campo-linha { display: flex; border-bottom: 1px solid #000; flex: 1; align-items: flex-end; padding-bottom: 2px; }
         .label { font-weight: bold; font-size: 13px; margin-right: 8px; text-transform: uppercase; }
@@ -37,6 +43,10 @@
         .item-lista { display: flex; justify-content: space-between; padding: 8px; border-bottom: 1px solid #eee; font-size: 14px; cursor: pointer; transition: background 0.2s; }
         .item-lista:hover { background-color: #f9f9f9; }
         .item-lista.selecionado { background-color: #e7f3ff; border-left: 5px solid var(--accent-color); font-weight: bold; }
+
+        .num-item { color: #888; font-family: monospace; font-weight: bold; margin-right: 10px; border-right: 1px solid #ddd; padding-right: 8px; }
+        .link-situacao { color: var(--accent-color); text-decoration: underline; margin-left: 10px; font-weight: normal; cursor: pointer; }
+        .paga { color: green; text-decoration: none; font-weight: bold; cursor: default; }
 
         .controles { margin-top: 20px; display: flex; gap: 10px; justify-content: center; }
         .btn-acao { padding: 10px 25px; font-weight: bold; cursor: pointer; border: 2px solid #000; background: #fff; text-transform: uppercase; }
@@ -85,25 +95,41 @@
                         <span class="label">Telefone:</span>
                         <input type="text" id="cli-fone" placeholder="(00) 00000-0000">
                     </div>
-                    <button class="btn-add" onclick="adicionarCliente()">Adicionar</button>
+                    <button class="btn-add" onclick="adicionarCliente()">SALVAR</button>
                 </div>
                 <div class="lista-dados" id="lista-clientes"></div>
             </div>
 
             <div id="notas" class="tab-content">
-                <h3 id="nota-cliente-info" style="margin-top: 0; color: var(--accent-color);">Nenhum cliente selecionado</h3>
+                <div class="header-meta-notas">
+                    <div class="meta-linha">
+                        <span class="meta-label">CLIENTE:</span>
+                        <span id="nota-cliente-info" class="meta-valor">NENHUM SELECIONADO</span>
+                    </div>
+                    <span id="resumo-financeiro" class="meta-resumo-aberto">0 notas em aberto totalizando R$0.00</span>
+                </div>
+
                 <div class="form-papel">
                     <div class="campo-linha">
                         <span class="label">Data:</span>
                         <input type="date" id="nota-data">
                     </div>
-                    <button class="btn-add" onclick="adicionarNota()">Salvar Nota</button>
+                    <button class="btn-add" onclick="adicionarNota()">Nova Nota</button>
                 </div>
                 <div class="lista-dados" id="lista-notas"></div>
             </div>
             
             <div id="produtos" class="tab-content">
-                <h3 id="produto-nota-info" style="margin-top: 0; color: var(--accent-color);">Nenhuma nota selecionada</h3>
+                <div class="header-meta-notas">
+                    <div class="meta-linha">
+                        <span class="meta-label">CLIENTE:</span>
+                        <span id="prod-cliente-info" class="meta-valor">NENHUM SELECIONADO</span>
+                        <span class="meta-label" style="margin-left: 15px;">| DATA:</span>
+                        <span id="prod-data-info" class="meta-valor">--/--/----</span>
+                    </div>
+                    <span id="resumo-produtos" class="meta-resumo-aberto">0 produtos totalizando R$0.00</span>
+                </div>
+
                 <div class="form-papel">
                     <div class="campo-linha">
                         <span class="label">Descrição:</span>
@@ -142,10 +168,18 @@
         let clienteSelecionado = null;
         let notaSelecionada = null;
 
-        // Define a data atual no input
         document.getElementById('nota-data').valueAsDate = new Date();
 
         function abrirAba(evt, abaNome) {
+            // Se for clique manual (evt não é nulo) e estiver tentando sair da aba produtos vazia
+            if (evt && evt.type === 'click' && document.getElementById('produtos').classList.contains('active') && abaNome !== 'produtos') {
+                const listaProdutos = document.getElementById('lista-produtos');
+                if (listaProdutos.children.length === 0) {
+                    alert("Adicione pelo menos um produto antes de sair!");
+                    return;
+                }
+            }
+
             if (abaNome === 'notas' && !clienteSelecionado) {
                 alert("Por favor, selecione um cliente primeiro!");
                 return;
@@ -171,15 +205,15 @@
             document.getElementById(abaNome).style.display = "block";
             document.getElementById(abaNome).classList.add("active");
             
-            const target = evt.currentTarget || document.getElementById('btn-tab-' + abaNome);
-            target.classList.add("active");
+            const target = (evt && evt.currentTarget) ? evt.currentTarget : document.getElementById('btn-tab-' + abaNome);
+            if (target) target.classList.add("active");
         }
 
         function selecionarCliente(id, nome) {
             clienteSelecionado = { id, nome };
             notaSelecionada = null;
-            document.getElementById('nota-cliente-info').innerText = "Notas para: " + nome;
-            document.getElementById('produto-nota-info').innerText = "Nenhuma nota selecionada";
+            document.getElementById('nota-cliente-info').innerText = nome;
+            document.getElementById('prod-cliente-info').innerText = nome;
             const itens = document.querySelectorAll('#lista-clientes .item-lista');
             itens.forEach(item => item.classList.remove('selecionado'));
             event.currentTarget.classList.add('selecionado');
@@ -187,38 +221,93 @@
 
         function selecionarNota(id, dataNota) {
             notaSelecionada = { id, dataNota };
-            document.getElementById('produto-nota-info').innerText = "Produtos da Nota: " + dataNota;
+            document.getElementById('prod-data-info').innerText = dataNota;
             const itens = document.querySelectorAll('#lista-notas .item-lista');
             itens.forEach(item => item.classList.remove('selecionado'));
-            event.currentTarget.classList.add('selecionado');
+            
+            // Tenta encontrar o item na lista para marcar como selecionado visualmente
+            const todosItens = document.querySelectorAll('#lista-notas .item-lista');
+            todosItens.forEach(item => {
+                // Aqui uma lógica simples de comparação (pode ser melhorada)
+                if(item.innerText.includes(dataNota)) item.classList.add('selecionado');
+            });
         }
 
         function adicionarNota() {
             const dataNota = document.getElementById('nota-data').value;
             if (!dataNota) return alert("Preencha a Data da nota!");
 
-            database.ref('notas/' + clienteSelecionado.id).push({
-                dataNota, total: "0.00"
+            const novaNotaRef = database.ref('notas/' + clienteSelecionado.id).push();
+            
+            novaNotaRef.set({
+                dataNota, 
+                total: "0.00",
+                situacao: "em aberto"
             }).then(() => {
                 document.getElementById('nota-data').valueAsDate = new Date();
+                // Define a nota selecionada antes de mudar de aba
+                notaSelecionada = { id: novaNotaRef.key, dataNota: dataNota };
+                document.getElementById('prod-data-info').innerText = dataNota;
+                
+                // Abre a aba sem passar o evento (null) para pular a trava de segurança
+                abrirAba(null, 'produtos');
             });
+        }
+
+        function alterarStatusNota(notaId, statusAtual) {
+            if (statusAtual === "paga") return;
+            if (confirm("Confirmar que esta nota foi paga?")) {
+                database.ref('notas/' + clienteSelecionado.id + '/' + notaId).update({
+                    situacao: "paga"
+                });
+            }
         }
 
         function carregarNotas() {
             database.ref('notas/' + clienteSelecionado.id).on('value', (snapshot) => {
                 const lista = document.getElementById('lista-notas');
                 lista.innerHTML = "";
+                let notasArray = [];
+                let qtdAberto = 0;
+                let somaAberto = 0;
+
                 snapshot.forEach((child) => {
-                    const nota = child.val();
+                    const dados = child.val();
+                    notasArray.push({ id: child.key, ...dados });
+                    if (dados.situacao === "em aberto" || !dados.situacao) {
+                        qtdAberto++;
+                        somaAberto += parseFloat(dados.total || 0);
+                    }
+                });
+
+                const termoNota = qtdAberto === 1 ? "nota" : "notas";
+                document.getElementById('resumo-financeiro').innerText = `${qtdAberto} ${termoNota} em aberto totalizando R$${somaAberto.toFixed(2)}`;
+
+                const totalNotas = notasArray.length;
+                notasArray.reverse().forEach((nota, index) => {
                     const item = document.createElement('div');
                     item.className = 'item-lista';
-                    if(notaSelecionada && notaSelecionada.id === child.key) item.classList.add('selecionado');
-                    item.onclick = (e) => selecionarNota(child.key, nota.dataNota);
+                    if(notaSelecionada && notaSelecionada.id === nota.id) item.classList.add('selecionado');
+                    
+                    item.onclick = (e) => selecionarNota(nota.id, nota.dataNota);
                     item.ondblclick = (e) => {
-                        selecionarNota(child.key, nota.dataNota);
+                        selecionarNota(nota.id, nota.dataNota);
                         abrirAba({currentTarget: document.getElementById('btn-tab-produtos')}, 'produtos');
                     };
-                    item.innerHTML = `<span>Data: ${nota.dataNota}</span> <strong>Total: R$ ${nota.total}</strong>`;
+
+                    const numeroExibido = totalNotas - index;
+                    const classeStatus = nota.situacao === 'paga' ? 'link-situacao paga' : 'link-situacao';
+
+                    item.innerHTML = `
+                        <div>
+                            <span class="num-item">${String(numeroExibido).padStart(2, '0')}</span>
+                            <span>${nota.dataNota}</span>
+                            <span class="${classeStatus}" onclick="event.stopPropagation(); alterarStatusNota('${nota.id}', '${nota.situacao}')">
+                                (${nota.situacao || 'em aberto'})
+                            </span>
+                        </div>
+                        <strong>R$ ${nota.total}</strong>
+                    `;
                     lista.appendChild(item);
                 });
             });
@@ -282,14 +371,23 @@
             database.ref('produtos/' + notaSelecionada.id).on('value', (snapshot) => {
                 const lista = document.getElementById('lista-produtos');
                 lista.innerHTML = "";
+                let soma = 0;
+                let contador = 0;
+
                 snapshot.forEach((child) => {
                     const prod = child.val();
+                    soma += parseFloat(prod.preco);
+                    contador++;
+
                     const item = document.createElement('div');
                     item.className = 'item-lista';
                     item.style.cursor = "default";
                     item.innerHTML = `<span>${prod.descricao}</span> <strong>R$ ${prod.preco}</strong>`;
                     lista.appendChild(item);
                 });
+
+                const termoProd = contador === 1 ? "produto" : "produtos";
+                document.getElementById('resumo-produtos').innerText = `${contador} ${termoProd} totalizando R$${soma.toFixed(2)}`;
             });
         }
     </script>
