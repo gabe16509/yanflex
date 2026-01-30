@@ -29,14 +29,27 @@
         .tab-content.active { display: block; }
         
         .header-meta-notas { border: 1px solid #000; padding: 10px; margin-bottom: 20px; background: #fff; }
-        .meta-linha { border-bottom: 1px dotted #000; margin-bottom: 5px; padding-bottom: 2px; }
-        .meta-label { font-weight: bold; font-size: 12px; text-transform: uppercase; color: #000; margin-right: 5px; }
-        .meta-valor { font-family: 'Courier New', Courier, monospace; font-size: 14px; color: #000; text-transform: uppercase; }
-        .meta-resumo-aberto { display: block; font-size: 13px; font-weight: bold; color: #d9534f; margin-top: 5px; }
+        .meta-linha { border-bottom: 1px dotted #000; margin-bottom: 5px; padding-bottom: 2px; display: flex; align-items: flex-end; }
+        .meta-label { font-weight: bold; font-size: 12px; text-transform: uppercase; color: #000; margin-right: 5px; white-space: nowrap; }
+        
+        .meta-linha input { border: none; outline: none; background: transparent; font-family: 'Courier New', Courier, monospace; font-size: 14px; width: 100%; text-transform: uppercase; }
+        .meta-linha input[type="date"] { text-transform: none; cursor: pointer; }
 
-        .form-papel { display: flex; gap: 20px; align-items: flex-end; }
-        .campo-linha { display: flex; border-bottom: 1px solid #000; flex: 1; align-items: flex-end; padding-bottom: 2px; }
-        .label { font-weight: bold; font-size: 13px; margin-right: 8px; text-transform: uppercase; }
+        .container-resumo-salvar { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-top: 5px; 
+        }
+
+        .meta-resumo-aberto { font-size: 13px; font-weight: bold; color: #d9534f; }
+        
+        #id-nota-display { font-family: monospace; font-size: 13px; font-weight: bold; color: #000; }
+        .link-salvar { color: var(--accent-color); text-decoration: underline; cursor: pointer; font-weight: bold; text-transform: uppercase; font-size: 11px; margin-left: 10px; }
+
+        .form-papel { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; }
+        .campo-linha { display: flex; border-bottom: 1px solid #000; flex: 1; align-items: flex-end; padding-bottom: 2px; min-width: 80px; }
+        .label { font-weight: bold; font-size: 13px; margin-right: 8px; text-transform: uppercase; white-space: nowrap; }
         .form-papel input { border: none; outline: none; background: transparent; font-family: inherit; font-size: 14px; width: 100%; }
 
         .lista-dados { margin-top: 30px; border-top: 1px dashed #ccc; padding-top: 10px; }
@@ -50,14 +63,16 @@
 
         .controles { margin-top: 20px; display: flex; gap: 10px; justify-content: center; }
         .btn-acao { padding: 10px 25px; font-weight: bold; cursor: pointer; border: 2px solid #000; background: #fff; text-transform: uppercase; }
-        .btn-add { background: #000; color: #fff; padding: 5px 15px; cursor: pointer; border: none; text-transform: uppercase; font-size: 11px; font-weight: bold; }
+        .btn-add { background: #000; color: #fff; padding: 5px 15px; cursor: pointer; border: none; text-transform: uppercase; font-size: 11px; font-weight: bold; align-self: flex-end; }
 
         @media print { 
             @page { margin: 1cm; }
             body { background-color: #fff; padding: 0; }
             .wrapper { width: 100%; border: none; }
-            .tabs-nav, .controles, .btn-add { display: none !important; } 
+            .tabs-nav, .controles, .btn-add, .container-resumo-salvar { display: none !important; } 
             .content-container { border: 2px solid #000; }
+            input { border: none !important; }
+            input::-webkit-calendar-picker-indicator { display: none; }
         }
     </style>
 </head>
@@ -79,13 +94,70 @@
         </header>
 
         <nav class="tabs-nav">
-            <button id="btn-tab-clientes" class="tab-btn active" onclick="abrirAba(event, 'clientes')">Clientes</button>
+            <button id="btn-tab-produtos" class="tab-btn active" onclick="abrirAba(event, 'produtos')">Produtos</button>
             <button id="btn-tab-notas" class="tab-btn" onclick="abrirAba(event, 'notas')">Notas</button>
-            <button id="btn-tab-produtos" class="tab-btn" onclick="abrirAba(event, 'produtos')">Produtos</button>
+            <button id="btn-tab-clientes" class="tab-btn" onclick="abrirAba(event, 'clientes')">Clientes</button>
         </nav>
 
         <div class="content-container">
-            <div id="clientes" class="tab-content active">
+            <div id="produtos" class="tab-content active">
+                <div class="header-meta-notas">
+                    <div class="meta-linha">
+                        <span class="meta-label">CLIENTE:</span>
+                        <input type="text" id="prod-cliente-info" list="lista-sugestoes-clientes">
+                        <datalist id="lista-sugestoes-clientes"></datalist>
+                        
+                        <span class="meta-label" style="margin-left: 15px;">| DATA:</span>
+                        <input type="date" id="prod-data-info" style="max-width: 150px;">
+                    </div>
+                    
+                    <div class="container-resumo-salvar">
+                        <span id="resumo-produtos" class="meta-resumo-aberto">0 produtos totalizando R$0.00</span>
+                        <span id="id-nota-display"></span>
+                    </div>
+                </div>
+
+                <div class="form-papel">
+                    <div class="campo-linha" style="flex: 2;">
+                        <span class="label">Descrição:</span>
+                        <input type="text" id="prod-desc">
+                    </div>
+                    <div class="campo-linha" style="max-width: 80px;">
+                        <span class="label">Qtd:</span>
+                        <input type="number" id="prod-qtd" value="1">
+                    </div>
+                    <div class="campo-linha" style="max-width: 80px;">
+                        <span class="label">Un:</span>
+                        <input type="text" id="prod-un" placeholder="UNI" value="un">
+                    </div>
+                    <div class="campo-linha" style="max-width: 120px;">
+                        <span class="label">Preço Un:</span>
+                        <input type="text" id="prod-preco" placeholder="0.00">
+                    </div>
+                    <button class="btn-add" onclick="adicionarProduto()">Adicionar</button>
+                </div>
+                <div class="lista-dados" id="lista-produtos"></div>
+            </div>
+
+            <div id="notas" class="tab-content">
+                <div class="header-meta-notas">
+                    <div class="meta-linha">
+                        <span class="meta-label">CLIENTE:</span>
+                        <span id="nota-cliente-info" class="meta-valor"></span>
+                    </div>
+                    <span id="resumo-financeiro" class="meta-resumo-aberto">0 notas em aberto totalizando R$0.00</span>
+                </div>
+
+                <div class="form-papel">
+                    <div class="campo-linha">
+                        <span class="label">Data:</span>
+                        <input type="date" id="nota-data">
+                    </div>
+                </div>
+                <div class="lista-dados" id="lista-notas"></div>
+            </div>
+
+            <div id="clientes" class="tab-content">
                 <div class="form-papel">
                     <div class="campo-linha">
                         <span class="label">Nome:</span>
@@ -99,297 +171,258 @@
                 </div>
                 <div class="lista-dados" id="lista-clientes"></div>
             </div>
-
-            <div id="notas" class="tab-content">
-                <div class="header-meta-notas">
-                    <div class="meta-linha">
-                        <span class="meta-label">CLIENTE:</span>
-                        <span id="nota-cliente-info" class="meta-valor">NENHUM SELECIONADO</span>
-                    </div>
-                    <span id="resumo-financeiro" class="meta-resumo-aberto">0 notas em aberto totalizando R$0.00</span>
-                </div>
-
-                <div class="form-papel">
-                    <div class="campo-linha">
-                        <span class="label">Data:</span>
-                        <input type="date" id="nota-data">
-                    </div>
-                    <button class="btn-add" onclick="adicionarNota()">Nova Nota</button>
-                </div>
-                <div class="lista-dados" id="lista-notas"></div>
-            </div>
-            
-            <div id="produtos" class="tab-content">
-                <div class="header-meta-notas">
-                    <div class="meta-linha">
-                        <span class="meta-label">CLIENTE:</span>
-                        <span id="prod-cliente-info" class="meta-valor">NENHUM SELECIONADO</span>
-                        <span class="meta-label" style="margin-left: 15px;">| DATA:</span>
-                        <span id="prod-data-info" class="meta-valor">--/--/----</span>
-                    </div>
-                    <span id="resumo-produtos" class="meta-resumo-aberto">0 produtos totalizando R$0.00</span>
-                </div>
-
-                <div class="form-papel">
-                    <div class="campo-linha">
-                        <span class="label">Descrição:</span>
-                        <input type="text" id="prod-desc">
-                    </div>
-                    <div class="campo-linha" style="max-width: 150px;">
-                        <span class="label">Preço:</span>
-                        <input type="text" id="prod-preco" placeholder="0.00">
-                    </div>
-                    <button class="btn-add" onclick="adicionarProduto()">Adicionar</button>
-                </div>
-                <div class="lista-dados" id="lista-produtos"></div>
-            </div>
         </div> 
     </div>
 
     <div class="controles">
-        <button class="btn-acao" onclick="location.reload()">Limpar Tudo</button>
+        <button class="btn-acao" onclick="limparTudo()">Limpar Tudo</button>
     </div>
 
     <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyD84TNeKpXJb9sIaJGucg9mTWSuEKudkXY",
-            authDomain: "yanflex-aa831.firebaseapp.com",
-            databaseURL: "https://yanflex-aa831-default-rtdb.firebaseio.com",
-            projectId: "yanflex-aa831",
-            storageBucket: "yanflex-aa831.firebasestorage.app",
-            messagingSenderId: "681248148266",
-            appId: "1:681248148266:web:cdd077e4f6590d20b82c53",
-            measurementId: "G-E2SKKRTSWJ"
-        };
+    const firebaseConfig = {
+        apiKey: "AIzaSyD84TNeKpXJb9sIaJGucg9mTWSuEKudkXY",
+        authDomain: "yanflex-aa831.firebaseapp.com",
+        databaseURL: "https://yanflex-aa831-default-rtdb.firebaseio.com",
+        projectId: "yanflex-aa831",
+        storageBucket: "yanflex-aa831.firebasestorage.app",
+        messagingSenderId: "681248148266",
+        appId: "1:681248148266:web:cdd077e4f6590d20b82c53",
+        measurementId: "G-E2SKKRTSWJ"
+    };
 
-        firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
 
-        let clienteSelecionado = null;
-        let notaSelecionada = null;
+    let clienteSelecionado = null;
+    let todosClientes = {};
+    let produtosTemporarios = [];
+    let contadorNotaAtual = 1;
+    let estaSalvando = false;
 
-        document.getElementById('nota-data').valueAsDate = new Date();
-
-        function abrirAba(evt, abaNome) {
-            // Se for clique manual (evt não é nulo) e estiver tentando sair da aba produtos vazia
-            if (evt && evt.type === 'click' && document.getElementById('produtos').classList.contains('active') && abaNome !== 'produtos') {
-                const listaProdutos = document.getElementById('lista-produtos');
-                if (listaProdutos.children.length === 0) {
-                    alert("Adicione pelo menos um produto antes de sair!");
-                    return;
-                }
-            }
-
-            if (abaNome === 'notas' && !clienteSelecionado) {
-                alert("Por favor, selecione um cliente primeiro!");
-                return;
-            }
-            if (abaNome === 'produtos' && !notaSelecionada) {
-                alert("Por favor, selecione uma nota primeiro!");
-                return;
-            }
-
-            if (abaNome === 'notas') carregarNotas();
-            if (abaNome === 'produtos') carregarProdutos();
-
-            var i, tabcontent, tablinks;
-            tabcontent = document.getElementsByClassName("tab-content");
-            for (i = 0; i < tabcontent.length; i++) {
-                tabcontent[i].style.display = "none";
-                tabcontent[i].classList.remove("active");
-            }
-            tablinks = document.getElementsByClassName("tab-btn");
-            for (i = 0; i < tablinks.length; i++) {
-                tablinks[i].classList.remove("active");
-            }
-            document.getElementById(abaNome).style.display = "block";
-            document.getElementById(abaNome).classList.add("active");
-            
-            const target = (evt && evt.currentTarget) ? evt.currentTarget : document.getElementById('btn-tab-' + abaNome);
-            if (target) target.classList.add("active");
+    database.ref('config/ultimo_id_nota').on('value', (snapshot) => {
+        if (snapshot.exists()) {
+            contadorNotaAtual = snapshot.val();
+        } else {
+            database.ref('config/ultimo_id_nota').set(1);
         }
+        atualizarLabelNota();
+    });
 
-        function selecionarCliente(id, nome) {
-            clienteSelecionado = { id, nome };
-            notaSelecionada = null;
-            document.getElementById('nota-cliente-info').innerText = nome;
-            document.getElementById('prod-cliente-info').innerText = nome;
-            const itens = document.querySelectorAll('#lista-clientes .item-lista');
-            itens.forEach(item => item.classList.remove('selecionado'));
-            event.currentTarget.classList.add('selecionado');
+    // Correção da data padrão para o fuso local
+    const dataLocal = new Date();
+    const hoje = dataLocal.getFullYear() + '-' + String(dataLocal.getMonth() + 1).padStart(2, '0') + '-' + String(dataLocal.getDate()).padStart(2, '0');
+    document.getElementById('nota-data').value = hoje;
+    document.getElementById('prod-data-info').value = hoje;
+
+    function atualizarLabelNota() {
+        const display = document.getElementById('id-nota-display');
+        const textoBotao = estaSalvando ? "SALVANDO..." : "SALVAR NOTA";
+        const estiloBotao = estaSalvando ? "opacity: 0.5; cursor: not-allowed;" : "cursor: pointer;";
+        
+        display.innerHTML = `NOTA: ${String(contadorNotaAtual).padStart(4, '0')} 
+            <span class="link-salvar" style="${estiloBotao}" onclick="${estaSalvando ? '' : 'gerarNotaComProdutos()'}">${textoBotao}</span>`;
+    }
+
+    function abrirAba(evt, abaNome) {
+        if (abaNome === 'notas') carregarNotas();
+        
+        var i, tabcontent, tablinks;
+        tabcontent = document.getElementsByClassName("tab-content");
+        for (i = 0; i < tabcontent.length; i++) {
+            tabcontent[i].style.display = "none";
+            tabcontent[i].classList.remove("active");
         }
-
-        function selecionarNota(id, dataNota) {
-            notaSelecionada = { id, dataNota };
-            document.getElementById('prod-data-info').innerText = dataNota;
-            const itens = document.querySelectorAll('#lista-notas .item-lista');
-            itens.forEach(item => item.classList.remove('selecionado'));
-            
-            // Tenta encontrar o item na lista para marcar como selecionado visualmente
-            const todosItens = document.querySelectorAll('#lista-notas .item-lista');
-            todosItens.forEach(item => {
-                // Aqui uma lógica simples de comparação (pode ser melhorada)
-                if(item.innerText.includes(dataNota)) item.classList.add('selecionado');
-            });
+        tablinks = document.getElementsByClassName("tab-btn");
+        for (i = 0; i < tablinks.length; i++) {
+            tablinks[i].classList.remove("active");
         }
+        document.getElementById(abaNome).style.display = "block";
+        document.getElementById(abaNome).classList.add("active");
+        
+        const target = (evt && evt.currentTarget) ? evt.currentTarget : document.getElementById('btn-tab-' + abaNome);
+        if (target) target.classList.add("active");
+    }
 
-        function adicionarNota() {
-            const dataNota = document.getElementById('nota-data').value;
-            if (!dataNota) return alert("Preencha a Data da nota!");
+    function selecionarCliente(id, nome) {
+        clienteSelecionado = { id, nome };
+        document.getElementById('nota-cliente-info').innerText = nome;
+        document.getElementById('prod-cliente-info').value = nome;
+        const itens = document.querySelectorAll('#lista-clientes .item-lista');
+        itens.forEach(item => {
+            item.classList.remove('selecionado');
+            if(item.getAttribute('data-id') === id) item.classList.add('selecionado');
+        });
+    }
+
+    function adicionarProduto() {
+        const desc = document.getElementById('prod-desc').value.trim();
+        const qtd = parseFloat(document.getElementById('prod-qtd').value);
+        const un = document.getElementById('prod-un').value.trim();
+        const precoStr = document.getElementById('prod-preco').value.replace(',', '.');
+        const precoUn = parseFloat(precoStr);
+
+        if (!desc || isNaN(qtd) || isNaN(precoUn)) return alert("Preencha Descrição, Quantidade e Preço corretamente!");
+        
+        const precoTotalItem = (qtd * precoUn).toFixed(2);
+        
+        produtosTemporarios.push({
+            descricao: desc,
+            quantidade: qtd,
+            unidade: un,
+            precoUn: precoUn.toFixed(2),
+            precoTotal: precoTotalItem
+        });
+
+        document.getElementById('prod-desc').value = "";
+        document.getElementById('prod-qtd').value = "1";
+        document.getElementById('prod-preco').value = "";
+        
+        renderizarProdutosTemporarios();
+    }
+
+    function renderizarProdutosTemporarios() {
+        const lista = document.getElementById('lista-produtos');
+        lista.innerHTML = "";
+        let somaTotal = 0;
+        
+        produtosTemporarios.forEach((prod) => {
+            somaTotal += parseFloat(prod.precoTotal);
+            const item = document.createElement('div');
+            item.className = 'item-lista';
+            item.innerHTML = `
+                <span>${prod.quantidade}${prod.unidade} - ${prod.descricao} (R$ ${prod.precoUn}/un)</span> 
+                <strong>R$ ${prod.precoTotal}</strong>
+            `;
+            lista.appendChild(item);
+        });
+        document.getElementById('resumo-produtos').innerText = `${produtosTemporarios.length} itens totalizando R$${somaTotal.toFixed(2)}`;
+    }
+
+    async function gerarNotaComProdutos() {
+        if (estaSalvando) return;
+        if (!clienteSelecionado) return alert("Selecione um cliente primeiro!");
+        if (produtosTemporarios.length === 0) return alert("Adicione ao menos um produto!");
+
+        estaSalvando = true;
+        atualizarLabelNota();
+
+        try {
+            const dataNota = document.getElementById('prod-data-info').value;
+            const numeroParaEstaNota = contadorNotaAtual;
+            let somaTotal = produtosTemporarios.reduce((acc, p) => acc + parseFloat(p.precoTotal), 0);
 
             const novaNotaRef = database.ref('notas/' + clienteSelecionado.id).push();
-            
-            novaNotaRef.set({
-                dataNota, 
-                total: "0.00",
+            const notaId = novaNotaRef.key;
+
+            await novaNotaRef.set({
+                numero: numeroParaEstaNota,
+                dataNota,
+                total: somaTotal.toFixed(2),
                 situacao: "em aberto"
-            }).then(() => {
-                document.getElementById('nota-data').valueAsDate = new Date();
-                // Define a nota selecionada antes de mudar de aba
-                notaSelecionada = { id: novaNotaRef.key, dataNota: dataNota };
-                document.getElementById('prod-data-info').innerText = dataNota;
-                
-                // Abre a aba sem passar o evento (null) para pular a trava de segurança
-                abrirAba(null, 'produtos');
             });
-        }
 
-        function alterarStatusNota(notaId, statusAtual) {
-            if (statusAtual === "paga") return;
-            if (confirm("Confirmar que esta nota foi paga?")) {
-                database.ref('notas/' + clienteSelecionado.id + '/' + notaId).update({
-                    situacao: "paga"
-                });
-            }
-        }
-
-        function carregarNotas() {
-            database.ref('notas/' + clienteSelecionado.id).on('value', (snapshot) => {
-                const lista = document.getElementById('lista-notas');
-                lista.innerHTML = "";
-                let notasArray = [];
-                let qtdAberto = 0;
-                let somaAberto = 0;
-
-                snapshot.forEach((child) => {
-                    const dados = child.val();
-                    notasArray.push({ id: child.key, ...dados });
-                    if (dados.situacao === "em aberto" || !dados.situacao) {
-                        qtdAberto++;
-                        somaAberto += parseFloat(dados.total || 0);
-                    }
-                });
-
-                const termoNota = qtdAberto === 1 ? "nota" : "notas";
-                document.getElementById('resumo-financeiro').innerText = `${qtdAberto} ${termoNota} em aberto totalizando R$${somaAberto.toFixed(2)}`;
-
-                const totalNotas = notasArray.length;
-                notasArray.reverse().forEach((nota, index) => {
-                    const item = document.createElement('div');
-                    item.className = 'item-lista';
-                    if(notaSelecionada && notaSelecionada.id === nota.id) item.classList.add('selecionado');
-                    
-                    item.onclick = (e) => selecionarNota(nota.id, nota.dataNota);
-                    item.ondblclick = (e) => {
-                        selecionarNota(nota.id, nota.dataNota);
-                        abrirAba({currentTarget: document.getElementById('btn-tab-produtos')}, 'produtos');
-                    };
-
-                    const numeroExibido = totalNotas - index;
-                    const classeStatus = nota.situacao === 'paga' ? 'link-situacao paga' : 'link-situacao';
-
-                    item.innerHTML = `
-                        <div>
-                            <span class="num-item">${String(numeroExibido).padStart(2, '0')}</span>
-                            <span>${nota.dataNota}</span>
-                            <span class="${classeStatus}" onclick="event.stopPropagation(); alterarStatusNota('${nota.id}', '${nota.situacao}')">
-                                (${nota.situacao || 'em aberto'})
-                            </span>
-                        </div>
-                        <strong>R$ ${nota.total}</strong>
-                    `;
-                    lista.appendChild(item);
-                });
+            const promessasProdutos = produtosTemporarios.map(prod => {
+                return database.ref('produtos/' + notaId).push(prod);
             });
-        }
+            await Promise.all(promessasProdutos);
 
-        function adicionarCliente() {
-            const nome = document.getElementById('cli-nome').value;
-            const fone = document.getElementById('cli-fone').value;
-            if (!nome || !fone) return alert("Preencha Nome e Telefone!");
-            database.ref('clientes').push({ nome, fone }).then(() => {
-                document.getElementById('cli-nome').value = "";
-                document.getElementById('cli-fone').value = "";
-            });
-        }
+            await database.ref('config/ultimo_id_nota').set(numeroParaEstaNota + 1);
 
-        database.ref('clientes').on('value', (snapshot) => {
-            const lista = document.getElementById('lista-clientes');
+            alert("Nota Nº " + numeroParaEstaNota + " salva com sucesso!");
+            
+            produtosTemporarios = [];
+            renderizarProdutosTemporarios();
+        } catch (error) {
+            console.error(error);
+            alert("Erro ao salvar nota.");
+        } finally {
+            estaSalvando = false;
+            atualizarLabelNota();
+        }
+    }
+
+    function carregarNotas() {
+        if(!clienteSelecionado) return;
+        database.ref('notas/' + clienteSelecionado.id).once('value', (snapshot) => {
+            const lista = document.getElementById('lista-notas');
             lista.innerHTML = "";
+            let notasArray = [];
+            let somaAberto = 0;
+
             snapshot.forEach((child) => {
-                const cli = child.val();
+                const dados = child.val();
+                notasArray.push({ id: child.key, ...dados });
+                if (dados.situacao === "em aberto") somaAberto += parseFloat(dados.total || 0);
+            });
+
+            document.getElementById('resumo-financeiro').innerText = `R$${somaAberto.toFixed(2)} em aberto`;
+            notasArray.sort((a, b) => b.numero - a.numero);
+
+            notasArray.forEach((nota) => {
                 const item = document.createElement('div');
                 item.className = 'item-lista';
-                if(clienteSelecionado && clienteSelecionado.id === child.key) item.classList.add('selecionado');
-                item.onclick = (e) => selecionarCliente(child.key, cli.nome);
-                item.ondblclick = (e) => {
-                    selecionarCliente(child.key, cli.nome);
-                    abrirAba({currentTarget: document.getElementById('btn-tab-notas')}, 'notas');
-                };
-                item.innerHTML = `<span>${cli.nome}</span> <strong>${cli.fone}</strong>`;
+                item.innerHTML = `
+                    <div>
+                        <span class="num-item">${String(nota.numero).padStart(4, '0')}</span>
+                        <span>${nota.dataNota}</span>
+                        <span class="${nota.situacao === 'paga' ? 'link-situacao paga' : 'link-situacao'}">
+                            (${nota.situacao})
+                        </span>
+                    </div>
+                    <strong>R$ ${nota.total}</strong>
+                `;
                 lista.appendChild(item);
             });
         });
+    }
 
-        function adicionarProduto() {
-            const desc = document.getElementById('prod-desc').value;
-            const precoStr = document.getElementById('prod-preco').value.replace(',', '.');
-            const preco = parseFloat(precoStr);
+    function adicionarCliente() {
+        const nome = document.getElementById('cli-nome').value.trim();
+        const fone = document.getElementById('cli-fone').value.trim();
+        if (!nome || !fone) return alert("Preencha Nome e Telefone!");
+        database.ref('clientes').push({ nome, fone }).then(() => {
+            document.getElementById('cli-nome').value = "";
+            document.getElementById('cli-fone').value = "";
+        });
+    }
 
-            if (!desc || isNaN(preco)) return alert("Preencha Descrição e Preço corretamente!");
-            
-            database.ref('produtos/' + notaSelecionada.id).push({ 
-                descricao: desc, 
-                preco: preco.toFixed(2) 
-            }).then(() => {
-                document.getElementById('prod-desc').value = "";
-                document.getElementById('prod-preco').value = "";
-                
-                database.ref('produtos/' + notaSelecionada.id).once('value', (snapshot) => {
-                    let soma = 0;
-                    snapshot.forEach(child => {
-                        soma += parseFloat(child.val().preco);
-                    });
-                    database.ref('notas/' + clienteSelecionado.id + '/' + notaSelecionada.id).update({
-                        total: soma.toFixed(2)
-                    });
-                });
-            });
+    database.ref('clientes').on('value', (snapshot) => {
+        const lista = document.getElementById('lista-clientes');
+        const dataList = document.getElementById('lista-sugestoes-clientes');
+        lista.innerHTML = "";
+        dataList.innerHTML = "";
+        snapshot.forEach((child) => {
+            const cli = child.val();
+            todosClientes[child.key] = cli;
+            const item = document.createElement('div');
+            item.className = 'item-lista';
+            item.setAttribute('data-id', child.key);
+            item.onclick = () => selecionarCliente(child.key, cli.nome);
+            item.innerHTML = `<span>${cli.nome}</span> <strong>${cli.fone}</strong>`;
+            lista.appendChild(item);
+            const option = document.createElement('option');
+            option.value = cli.nome;
+            dataList.appendChild(option);
+        });
+    });
+
+    document.getElementById('prod-cliente-info').addEventListener('input', function(e) {
+        const nomeDigitado = e.target.value;
+        for (let id in todosClientes) {
+            if (todosClientes[id].nome === nomeDigitado) {
+                selecionarCliente(id, todosClientes[id].nome);
+                break;
+            }
         }
+    });
 
-        function carregarProdutos() {
-            database.ref('produtos/' + notaSelecionada.id).on('value', (snapshot) => {
-                const lista = document.getElementById('lista-produtos');
-                lista.innerHTML = "";
-                let soma = 0;
-                let contador = 0;
-
-                snapshot.forEach((child) => {
-                    const prod = child.val();
-                    soma += parseFloat(prod.preco);
-                    contador++;
-
-                    const item = document.createElement('div');
-                    item.className = 'item-lista';
-                    item.style.cursor = "default";
-                    item.innerHTML = `<span>${prod.descricao}</span> <strong>R$ ${prod.preco}</strong>`;
-                    lista.appendChild(item);
-                });
-
-                const termoProd = contador === 1 ? "produto" : "produtos";
-                document.getElementById('resumo-produtos').innerText = `${contador} ${termoProd} totalizando R$${soma.toFixed(2)}`;
-            });
+    function limparTudo() {
+        if(confirm("Deseja limpar os campos de rascunho?")){
+            produtosTemporarios = [];
+            renderizarProdutosTemporarios();
+            document.querySelectorAll('input:not([type="date"])').forEach(i => i.value = "");
         }
-    </script>
+    }
+</script>
 </body>
 </html>
