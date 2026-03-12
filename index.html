@@ -178,6 +178,32 @@
 
 
 
+        .campo-container .btn-limpar,
+
+        .meta-item-mesclado .btn-limpar {
+
+            position: absolute;
+
+            bottom: -9px;
+
+            right: 10px;
+
+            background-color: #fff;
+
+            padding: 0 4px;
+
+            font-size: 10px;
+
+            font-weight: bold;
+
+            color: #000;
+
+            cursor: pointer;
+
+        }
+
+
+
         .campo-container input {
 
             border: none;
@@ -766,7 +792,43 @@
 
 
 
-        let clienteSelecionado = null;
+        document.addEventListener('DOMContentLoaded', () => {
+
+            const containers = document.querySelectorAll('.campo-container, .meta-item-mesclado');
+
+            containers.forEach(container => {
+
+                const input = container.querySelector('input');
+
+                if (input) {
+
+                    const btn = document.createElement('span');
+
+                    btn.innerText = 'limpar';
+
+                    btn.className = 'btn-limpar';
+
+                    btn.onclick = () => {
+
+                        input.value = '';
+
+                        input.dispatchEvent(new Event('input', { bubbles: true }));
+
+                    };
+
+                    container.appendChild(btn);
+
+                }
+
+            });
+
+        });
+
+
+
+        let clienteSelecionadoProd = null;
+
+        let clienteSelecionadoNota = null;
 
         let todosClientes = {};
 
@@ -886,38 +948,19 @@
 
 
 
-        function selecionarCliente(id, nome) {
-
-            clienteSelecionado = { id, nome };
-
-            document.getElementById('nota-cliente-info').value = nome;
-
-            document.getElementById('prod-cliente-info').value = nome;
-
-
+        function selecionarClienteParaEdicao(id, nome) {
 
             // Preenche campos de edição
-
             document.getElementById('cli-nome').value = todosClientes[id].nome;
-
             document.getElementById('cli-fone').value = todosClientes[id].fone;
-
             editClienteId = id;
-
             document.getElementById('btn-cli-save').innerText = "ATUALIZAR";
 
-
-
             const itens = document.querySelectorAll('#lista-clientes .item-lista');
-
             itens.forEach(item => {
-
                 item.classList.remove('selecionado');
-
                 if (item.getAttribute('data-id') === id) item.classList.add('selecionado');
-
             });
-
         }
 
 
@@ -1263,7 +1306,7 @@
 
             if (estaSalvando) return;
 
-            if (!clienteSelecionado) return alert("Selecione um cliente primeiro!");
+            if (!clienteSelecionadoProd) return alert("Selecione um cliente primeiro!");
 
             if (produtosTemporarios.length === 0) return alert("Adicione ao menos um produto!");
 
@@ -1285,7 +1328,7 @@
 
 
 
-                const novaNotaRef = database.ref('notas/' + clienteSelecionado.id).push();
+                const novaNotaRef = database.ref('notas/' + clienteSelecionadoProd.id).push();
 
                 const notaId = novaNotaRef.key;
 
@@ -1351,7 +1394,7 @@
 
             if (confirm("Excluir nota permanentemente?")) {
 
-                database.ref('notas/' + clienteSelecionado.id + '/' + notaId).remove();
+                database.ref('notas/' + clienteSelecionadoNota.id + '/' + notaId).remove();
 
                 database.ref('produtos/' + notaId).remove();
 
@@ -1365,9 +1408,9 @@
 
         function carregarNotas() {
 
-            if (!clienteSelecionado) return;
+            if (!clienteSelecionadoNota) return;
 
-            database.ref('notas/' + clienteSelecionado.id).once('value', (snapshot) => {
+            database.ref('notas/' + clienteSelecionadoNota.id).once('value', (snapshot) => {
 
                 const lista = document.getElementById('lista-notas');
 
@@ -1402,6 +1445,8 @@
                     const item = document.createElement('div');
 
                     item.className = 'item-lista';
+                    
+                    item.ondblclick = () => carregarNotaNaAbaProdutos(nota);
 
                     item.innerHTML = `
 
@@ -1422,6 +1467,46 @@
                     lista.appendChild(item);
 
                 });
+
+            });
+
+        }
+
+
+
+        function carregarNotaNaAbaProdutos(nota) {
+
+            abrirAba(null, 'produtos');
+
+            clienteSelecionadoProd = clienteSelecionadoNota;
+
+            document.getElementById('prod-cliente-info').value = clienteSelecionadoNota.nome;
+
+            document.getElementById('prod-data-info').value = nota.dataNota;
+
+            document.getElementById('id-nota-display').innerHTML = `NOTA: ${String(nota.numero).padStart(4, '0')}`;
+
+
+
+            database.ref('produtos/' + nota.id).once('value', (snapshot) => {
+
+                produtosTemporarios = [];
+
+                snapshot.forEach((child) => {
+
+                    produtosTemporarios.push(child.val());
+
+                });
+
+                renderizarProdutosTemporarios();
+
+                
+
+                // Atualizar o botão de salvar para não permitir que o usuário salve em cima ou crie duplicidade facilmente se não foi instruído
+
+                // Como a instrução diz "faça somente o que eu mandar", não vou desabilitar nada.
+
+                // Mas preciso evitar conflitos de salvamento no 'ultimo_id_nota', que está no Firebase
 
             });
 
@@ -1517,7 +1602,7 @@
 
                 item.setAttribute('data-id', child.key);
 
-                item.onclick = () => selecionarCliente(child.key, cli.nome);
+                item.onclick = () => selecionarClienteParaEdicao(child.key, cli.nome);
 
                 item.innerHTML = `
 
@@ -1555,7 +1640,7 @@
 
                 if (todosClientes[id].nome === nomeDigitado) {
 
-                    selecionarCliente(id, todosClientes[id].nome);
+                    clienteSelecionadoProd = { id, nome: todosClientes[id].nome };
 
                     break;
 
@@ -1575,7 +1660,7 @@
 
                 if (todosClientes[id].nome === nomeDigitado) {
 
-                    selecionarCliente(id, todosClientes[id].nome);
+                    clienteSelecionadoNota = { id, nome: todosClientes[id].nome };
 
                     carregarNotas();
 
