@@ -1,1703 +1,275 @@
 <!DOCTYPE html>
-
 <html lang="pt-br">
-
 <head>
-
     <meta charset="UTF-8">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Sistema Yanflex - Profissional</title>
-
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
-
-
-
+    <title>Controle de Despesas</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
-            --border-color: #000;
-            --accent-color: #007bff;
-            --danger-color: #dc3545;
+            --bg-dark: #121212;
+            --card-bg: #1e1e1e;
+            --accent: #00adb5;
+            --text: #eeeeee;
+            --danger: #ff2e63;
         }
-
-        * {
-            box-sizing: border-box;
-        }
-
-
 
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            width: 90vw;
+            max-width: 1000px;
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .sidebar, .dashboard {
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            flex: 1;
+            min-width: 340px;
+        }
+
+        h2, h3 { margin-top: 0; color: var(--accent); }
+
+        .input-group {
             display: flex;
             flex-direction: column;
-            align-items: center;
-            padding: 10px;
-            background-color: #f4f4f4;
-            margin: 0;
-        }
-
-        .wrapper {
-            width: 790px;
-            background-color: #fff;
-        }
-
-
-
-        .header-fixo {
-            display: flex;
-            background-color: #fff;
-            border: 2px solid var(--border-color);
-            width: 100%;
-            margin-bottom: 15px;
-        }
-
-        .empresa-info {
-            flex: 1.5;
-            padding: 8px;
-            text-align: center;
-            border-right: 2px solid var(--border-color);
-        }
-
-        .empresa-info h1 {
-            font-size: 17px;
-            margin: 0;
-            text-transform: uppercase;
-        }
-
-        .empresa-info p {
-            font-size: 13px;
-            margin: 2px 0;
-            font-weight: bold;
-        }
-
-        .contato-info {
-            flex: 1;
-            padding: 8px;
-            font-size: 11px;
-            line-height: 1.3;
-        }
-
-
-
-        .tabs-nav {
-            display: flex;
-            gap: 5px;
-            padding-left: 5px;
-            width: 790px;
-        }
-
-        .tab-btn {
-            padding: 8px 20px;
-            cursor: pointer;
-            border: 2px solid var(--border-color);
-            border-bottom: none;
-            background: #d1d1d1;
-            font-weight: bold;
-            text-transform: uppercase;
-            font-size: 11px;
-            border-radius: 6px 6px 0 0;
-        }
-
-        .tab-btn.active {
-            background: #fff;
-            position: relative;
-            z-index: 2;
-            margin-bottom: -2px;
-        }
-
-
-
-        .content-container {
-            background-color: #fff;
-            border: 2px solid var(--border-color);
-            width: 100%;
-            min-height: 600px;
-            position: relative;
-            z-index: 1;
-        }
-
-        .tab-content {
-            display: none;
-            padding: 25px 20px;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-
-
-        .campo-container {
-
-            position: relative;
-
-            border: 2px solid #000;
-
-            border-radius: 6px;
-
-            margin-bottom: 15px;
-
-            display: flex;
-
-            align-items: center;
-
-            padding: 0 10px;
-
-            height: 48px;
-
-            background: transparent;
-
-        }
-
-
-
-        .campo-container label {
-
-            position: absolute;
-
-            top: -9px;
-
-            left: 10px;
-
-            background-color: #fff;
-
-            padding: 0 4px;
-
-            font-size: 10px;
-
-            font-weight: bold;
-
-            text-transform: uppercase;
-
-            color: #000;
-
-        }
-
-
-
-        .campo-container .btn-limpar,
-
-        .meta-item-mesclado .btn-limpar {
-
-            position: absolute;
-
-            bottom: -9px;
-
-            right: 10px;
-
-            background-color: #fff;
-
-            padding: 0 4px;
-
-            font-size: 10px;
-
-            font-weight: bold;
-
-            color: #000;
-
-            cursor: pointer;
-
-        }
-
-
-
-        .campo-container input {
-
-            border: none;
-
-            outline: none;
-
-            background: transparent;
-
-            width: 100%;
-
-            padding: 0;
-
-            height: 100%;
-
-            font-size: 14px;
-
-            font-family: 'Courier New', Courier, monospace;
-
-            text-transform: uppercase;
-
-        }
-
-
-
-        .header-meta-notas {
-            border: 1px solid #cce5ff;
-            padding: 20px 20px;
-            margin-bottom: 25px;
-            background: #e6f2ff;
-            border-radius: 8px;
-            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.02);
-        }
-
-        .meta-linha {
-            margin-bottom: 10px;
-            display: flex;
-            gap: 10px;
-        }
-
-
-
-        .meta-item-mesclado {
-            position: relative;
-            border: 2px solid #000;
-            border-radius: 6px;
-            flex: 1;
-            display: flex;
-            padding: 0 10px;
-            height: 48px;
-            align-items: center;
-        }
-
-        .meta-item-mesclado label {
-            position: absolute;
-            top: -9px;
-            left: 10px;
-            background: #fff;
-            font-size: 10px;
-            font-weight: bold;
-            padding: 0 4px;
-        }
-
-        .meta-item-mesclado input {
-            border: none;
-            outline: none;
-            background: transparent;
-            width: 100%;
-            padding: 0;
-            height: 100%;
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 14px;
-            text-transform: uppercase;
-        }
-
-
-
-        .container-resumo-salvar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 5px;
-        }
-
-        .meta-resumo-aberto {
-            font-size: 13px;
-            font-weight: bold;
-            color: #d9534f;
-        }
-
-        #id-nota-display {
-            font-family: monospace;
-            font-size: 13px;
-            font-weight: bold;
-            color: #000;
-        }
-
-        .link-salvar {
-            color: var(--accent-color);
-            text-decoration: underline;
-            cursor: pointer;
-            font-weight: bold;
-            text-transform: uppercase;
-            font-size: 11px;
-            margin-left: 10px;
-        }
-
-
-
-        .form-papel {
-            display: flex;
             gap: 12px;
-            align-items: stretch;
-            flex-wrap: wrap;
             margin-bottom: 20px;
-            background-color: #f8f9fa;
-            padding: 20px;
+        }
+
+        label { font-size: 0.9rem; opacity: 0.8; }
+
+        input {
+            padding: 12px;
             border-radius: 8px;
-            border: 1px solid #e9ecef;
+            border: 1px solid #333;
+            background: #252525;
+            color: white;
+            font-size: 1rem;
         }
 
-
-
-        .lista-dados {
-            margin-top: 10px;
-            border-top: 1px dashed #ccc;
-            padding-top: 15px;
+        button {
+            padding: 12px;
+            background: var(--accent);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
         }
 
-        .item-lista {
+        button:hover { background: #008d94; }
+
+        .expense-list-container {
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 15px;
+            border-top: 1px solid #333;
+        }
+
+        ul { list-style: none; padding: 0; }
+
+        li {
+            background: #2a2a2a;
+            padding: 10px;
+            margin: 8px 0;
+            border-radius: 5px;
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            padding: 8px;
-            border-bottom: 1px solid #eee;
-            font-size: 14px;
-            cursor: pointer;
-            transition: background 0.2s;
+            font-size: 0.9rem;
         }
 
-        .item-lista:hover {
-            background-color: #f9f9f9;
+        .stat-card {
+            text-align: center;
+            padding: 15px;
+            background: #252525;
+            border-radius: 10px;
+            margin-bottom: 20px;
         }
 
-        .item-lista.selecionado {
-            background-color: #e7f3ff;
-            border-left: 5px solid var(--accent-color);
-            font-weight: bold;
+        #balanceDisplay { font-size: 2.2rem; margin: 10px 0; }
+
+        .chart-container {
+            position: relative;
+            height: 350px;
+            width: 100%;
         }
 
-
-
-        .btn-apagar {
-            background: #ff4444;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            padding: 4px 8px;
-            cursor: pointer;
-            margin-left: 10px;
-            font-weight: bold;
-        }
-
-        .btn-apagar:hover {
-            background: #cc0000;
-        }
-
-
-
-        .num-item {
-            color: #888;
-            font-family: monospace;
-            font-weight: bold;
-            margin-right: 10px;
-            border-right: 1px solid #ddd;
-            padding-right: 8px;
-        }
-
-        .link-situacao {
-            color: var(--accent-color);
-            text-decoration: underline;
-            margin-left: 10px;
-            font-weight: normal;
-            cursor: pointer;
-        }
-
-        .paga {
-            color: green;
-            text-decoration: none;
-            font-weight: bold;
-            cursor: default;
-        }
-
-
-
-        .controles {
-            margin-top: 20px;
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-        }
-
-        .btn-acao {
-            padding: 10px 25px;
-            font-weight: bold;
-            cursor: pointer;
-            border: 2px solid #000;
-            background: #fff;
-            text-transform: uppercase;
-        }
-
-        .btn-add {
-            background: #000;
-            color: #fff;
-            padding: 0 20px;
-            cursor: pointer;
-            border: none;
-            text-transform: uppercase;
-            font-size: 11px;
-            font-weight: bold;
-            border-radius: 6px;
-            height: 48px;
-            align-self: center;
-            margin-bottom: 15px;
-        }
-
-
-
-        .btn-imprimir {
-            background-color: #6c757d;
-            color: white;
-            border: none;
-            padding: 5px 15px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 11px;
-            text-transform: uppercase;
-            margin-right: 10px;
-        }
-
-        .btn-imprimir:hover {
-            background-color: #5a6268;
-        }
-
-        @media print {
-
-            @page {
-                margin: 1cm;
-            }
-
-            body {
-                background-color: #fff;
-                padding: 0;
-            }
-
-            .wrapper {
-                width: 100%;
-                border: none;
-            }
-
-            .tabs-nav,
-            .controles,
-            .btn-add,
-            .btn-imprimir,
-            #btn-salvar-nota-container,
-            .form-papel,
-            .btn-apagar {
-                display: none !important;
-            }
-
-            .content-container {
-                border: 2px solid #000;
-            }
-
-            .campo-container {
-                border: 1px solid #000 !important;
-            }
-
-        }
+        hr { border: 0; border-top: 1px solid #333; margin: 20px 0; }
     </style>
-
 </head>
-
 <body>
 
-
-
-    <div class="wrapper">
-
-        <header class="header-fixo">
-
-            <div class="empresa-info">
-
-                <h1>MZ Comércio e Serviços</h1>
-
-                <p>YANFLEX</p>
-
-                <p>Mangueiras e Conexões Hidráulicas</p>
-
-                <p>CNPJ: 18.502.457/0001-60</p>
-
+    <div class="container">
+        <aside class="sidebar">
+            <h2>Configurações</h2>
+            <div class="input-group">
+                <label>Renda Mensal Total (R$)</label>
+                <input type="number" id="incomeInput" placeholder="Ex: 5000" value="0">
             </div>
 
-            <div class="contato-info">
+            <hr>
 
-                <strong>End:</strong> Rua N, Quadra 121 - Box 14 Área Industrial<br>
-
-                Monte Dourado - PA | CEP: 68.240-00<br>
-
-                <strong>Fone:</strong> (96) 99122-5729
-
+            <h3>Adicionar Despesa</h3>
+            <div class="input-group">
+                <input type="text" id="descInput" placeholder="Descrição (Ex: Mercado)">
+                <input type="number" id="amountInput" placeholder="Valor (R$)">
+                <button onclick="addExpense()">Adicionar Despesa</button>
             </div>
 
-        </header>
-
-
-
-        <nav class="tabs-nav">
-
-            <button id="btn-tab-produtos" class="tab-btn active" onclick="abrirAba(event, 'produtos')">Produtos</button>
-
-            <button id="btn-tab-notas" class="tab-btn" onclick="abrirAba(event, 'notas')">Notas</button>
-
-            <button id="btn-tab-clientes" class="tab-btn" onclick="abrirAba(event, 'clientes')">Clientes</button>
-
-            <button id="btn-tab-estoque" class="tab-btn" onclick="abrirAba(event, 'estoque')">Estoque</button>
-
-        </nav>
-
-
-
-        <div class="content-container">
-
-            <div id="produtos" class="tab-content active">
-
-                <div class="header-meta-notas">
-
-                    <div
-                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                        <span id="id-nota-display"></span>
-                        <div style="display: flex; align-items: center;">
-                            <span id="btn-salvar-nota-container"></span>
-                            <button class="btn-imprimir" onclick="window.print()"
-                                style="margin-right: 0; margin-left: 15px;">IMPRIMIR</button>
-                        </div>
-                    </div>
-
-                    <div class="meta-linha">
-
-                        <div class="meta-item-mesclado" style="flex: 2;">
-
-                            <label>Cliente</label>
-
-                            <input type="text" id="prod-cliente-info" list="lista-sugestoes-clientes">
-
-                        </div>
-
-                        <div class="meta-item-mesclado" style="max-width: 180px;">
-
-                            <label>Data</label>
-
-                            <input type="date" id="prod-data-info">
-
-                        </div>
-
-                        <datalist id="lista-sugestoes-clientes"></datalist>
-
-                    </div>
-
-
-
-                    <div class="container-resumo-salvar" style="justify-content: flex-start;">
-
-                        <span id="resumo-produtos" class="meta-resumo-aberto" style="font-size: 15px;">Valor Total da
-                            Nota: R$0.00</span>
-
-                    </div>
-
-                </div>
-
-
-
-                <div class="form-papel">
-
-                    <div class="campo-container" style="flex: 1 1 100%; margin-bottom: 0px;">
-
-                        <label>Descrição</label>
-
-                        <input type="text" id="prod-desc" list="lista-sugestoes-estoque">
-
-                    </div>
-
-                    <div class="campo-container" style="flex: 0.5; min-width: 70px;">
-
-                        <label>Qtd</label>
-
-                        <input type="number" id="prod-qtd" value="1">
-
-                    </div>
-
-                    <div class="campo-container" style="flex: 0.5; min-width: 70px;">
-
-                        <label>UNI</label>
-
-                        <input type="text" id="prod-un" placeholder="UNI" value="" list="lista-sugestoes-unidades">
-
-                    </div>
-
-                    <div class="campo-container" style="flex: 1;">
-
-                        <label>Preço Un</label>
-
-                        <input type="text" id="prod-preco" placeholder="0.00">
-
-                    </div>
-
-                    <button id="btn-prod-save" class="btn-add" onclick="adicionarProduto()">Adicionar</button>
-
-                </div>
-
-                <datalist id="lista-sugestoes-estoque"></datalist>
-                <datalist id="lista-sugestoes-unidades"></datalist>
-
-                <div class="lista-dados" id="lista-produtos"></div>
-
+            <div class="expense-list-container">
+                <ul id="expenseList"></ul>
             </div>
+        </aside>
 
-
-
-            <div id="notas" class="tab-content">
-
-                <div class="header-meta-notas">
-
-                    <div class="meta-linha">
-
-                        <div class="meta-item-mesclado">
-
-                            <label>Cliente Selecionado</label>
-
-                            <input type="text" id="nota-cliente-info" list="lista-sugestoes-clientes-notas"
-                                style="font-weight: bold; color: var(--accent-color);">
-
-                        </div>
-
-                    </div>
-
-                    <span id="resumo-financeiro" class="meta-resumo-aberto">0 notas em aberto totalizando R$0.00</span>
-
-                </div>
-
-                <datalist id="lista-sugestoes-clientes-notas"></datalist>
-
-                <div class="form-papel">
-
-                    <div class="campo-container" style="max-width: 200px;">
-
-                        <label>Data</label>
-
-                        <input type="date" id="nota-data">
-
-                    </div>
-
-                </div>
-
-                <div class="lista-dados" id="lista-notas"></div>
-
+        <main class="dashboard">
+            <div class="stat-card">
+                <span>Saldo Restante</span>
+                <h2 id="balanceDisplay">R$ 0,00</h2>
             </div>
-
-
-
-            <div id="clientes" class="tab-content">
-
-                <div class="form-papel">
-
-                    <div class="campo-container" style="flex: 2;">
-
-                        <label>Nome do Cliente</label>
-
-                        <input type="text" id="cli-nome">
-
-                    </div>
-
-                    <div class="campo-container" style="flex: 1;">
-
-                        <label>Telefone</label>
-
-                        <input type="text" id="cli-fone" placeholder="(00) 00000-0000">
-
-                    </div>
-
-                    <button id="btn-cli-save" class="btn-add" onclick="adicionarCliente()">SALVAR</button>
-
-                </div>
-
-                <div class="lista-dados" id="lista-clientes"></div>
-
+            
+            <div class="chart-container">
+                <canvas id="expenseChart"></canvas>
             </div>
-
-
-
-            <div id="estoque" class="tab-content">
-
-                <div class="form-papel">
-
-                    <div class="campo-container" style="flex: 1 1 100%; margin-bottom: 0px;">
-
-                        <label>Descrição</label>
-
-                        <input type="text" id="est-desc">
-
-                    </div>
-
-                    <div class="campo-container" style="flex: 0.5;">
-
-                        <label>Unidade</label>
-
-                        <input type="text" id="est-un" placeholder="UNI" list="lista-sugestoes-unidades">
-
-                    </div>
-
-                    <div class="campo-container" style="flex: 0.8;">
-
-                        <label>Preço por Un</label>
-
-                        <input type="text" id="est-preco" placeholder="0.00">
-
-                    </div>
-
-                    <div class="campo-container" style="flex: 0.7;">
-
-                        <label>Qtd em Estoque</label>
-
-                        <input type="number" id="est-qtd" value="0">
-
-                    </div>
-
-                    <button id="btn-est-save" class="btn-add" onclick="salvarNoEstoque()">SALVAR</button>
-
-                </div>
-
-                <div class="lista-dados" id="lista-estoque"></div>
-
-            </div>
-
-        </div>
-
+        </main>
     </div>
-
-
-
-    <div class="controles">
-
-        <button class="btn-acao" onclick="limparTudo()">Limpar Tudo</button>
-
-    </div>
-
-
 
     <script>
+        let expenses = [];
+        let myChart;
 
-        const firebaseConfig = {
+        // Cores vibrantes
+        const chartColors = [
+            '#36a2eb', // Saldo (Azul)
+            '#ff6384', // Rosa
+            '#ff9f40', // Laranja
+            '#4bc0c0', // Ciano
+            '#9966ff', // Roxo
+            '#ffcd56', // Amarelo
+            '#c9cbcf'  // Cinza
+        ];
 
-            apiKey: "AIzaSyD84TNeKpXJb9sIaJGucg9mTWSuEKudkXY",
-
-            authDomain: "yanflex-aa831.firebaseapp.com",
-
-            databaseURL: "https://yanflex-aa831-default-rtdb.firebaseio.com",
-
-            projectId: "yanflex-aa831",
-
-            storageBucket: "yanflex-aa831.firebasestorage.app",
-
-            messagingSenderId: "681248148266",
-
-            appId: "1:681248148266:web:cdd077e4f6590d20b82c53",
-
-            measurementId: "G-E2SKKRTSWJ"
-
-        };
-
-
-
-        firebase.initializeApp(firebaseConfig);
-
-        const database = firebase.database();
-
-
-
-        document.addEventListener('DOMContentLoaded', () => {
-
-            const containers = document.querySelectorAll('.campo-container, .meta-item-mesclado');
-
-            containers.forEach(container => {
-
-                const input = container.querySelector('input');
-
-                if (input) {
-
-                    const btn = document.createElement('span');
-
-                    btn.innerText = 'limpar';
-
-                    btn.className = 'btn-limpar';
-
-                    btn.onclick = () => {
-
-                        input.value = '';
-
-                        input.dispatchEvent(new Event('input', { bubbles: true }));
-
-                    };
-
-                    container.appendChild(btn);
-
+        const ctx = document.getElementById('expenseChart').getContext('2d');
+        
+        function initChart() {
+            myChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: ['Saldo Disponível (100%)'],
+                    datasets: [{
+                        data: [100],
+                        backgroundColor: chartColors,
+                        borderColor: '#1e1e1e',
+                        borderWidth: 3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { color: '#eeeeee', padding: 20 }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return ` R$ ${context.parsed.toFixed(2)}`;
+                                }
+                            }
+                        }
+                    }
                 }
-
             });
+        }
 
-        });
+        function addExpense() {
+            const descEl = document.getElementById('descInput');
+            const amountEl = document.getElementById('amountInput');
+            const description = descEl.value;
+            const amount = parseFloat(amountEl.value);
 
-
-
-        let clienteSelecionadoProd = null;
-
-        let clienteSelecionadoNota = null;
-
-        let todosClientes = {};
-
-        let todosEstoque = {};
-
-        let produtosTemporarios = [];
-
-        let contadorNotaAtual = 1;
-
-        let estaSalvando = false;
-
-
-
-        // IDs de controle para Edição
-
-        let editClienteId = null;
-
-        let editEstoqueId = null;
-
-        let editProdutoIndex = null;
-
-
-
-        database.ref('config/ultimo_id_nota').on('value', (snapshot) => {
-
-            if (snapshot.exists()) {
-
-                contadorNotaAtual = snapshot.val();
-
+            if (description && amount > 0) {
+                expenses.push({ description, amount });
+                descEl.value = '';
+                amountEl.value = '';
+                updateUI();
             } else {
-
-                database.ref('config/ultimo_id_nota').set(1);
-
+                alert("Insira uma descrição e um valor válido.");
             }
-
-            atualizarLabelNota();
-
-        });
-
-
-
-        const dataLocal = new Date();
-
-        const hoje = dataLocal.getFullYear() + '-' + String(dataLocal.getMonth() + 1).padStart(2, '0') + '-' + String(dataLocal.getDate()).padStart(2, '0');
-
-        document.getElementById('nota-data').value = hoje;
-
-        document.getElementById('prod-data-info').value = hoje;
-
-
-
-        function atualizarLabelNota() {
-
-            const display = document.getElementById('id-nota-display');
-
-            const containerSalvar = document.getElementById('btn-salvar-nota-container');
-
-            const textoBotao = estaSalvando ? "SALVANDO..." : "SALVAR NOTA";
-
-            const estiloBotao = estaSalvando ? "opacity: 0.5; cursor: not-allowed;" : "cursor: pointer;";
-
-
-
-            if (display) {
-
-                display.innerHTML = `NOTA: ${String(contadorNotaAtual).padStart(4, '0')}`;
-
-            }
-
-            if (containerSalvar) {
-
-                containerSalvar.innerHTML = `<span class="link-salvar" style="${estiloBotao}; margin-left: 0;" onclick="${estaSalvando ? '' : 'gerarNotaComProdutos()'}">${textoBotao}</span>`;
-
-            }
-
         }
 
-
-
-        function abrirAba(evt, abaNome) {
-
-            if (abaNome === 'notas') carregarNotas();
-
-
-
-            var i, tabcontent, tablinks;
-
-            tabcontent = document.getElementsByClassName("tab-content");
-
-            for (i = 0; i < tabcontent.length; i++) {
-
-                tabcontent[i].style.display = "none";
-
-                tabcontent[i].classList.remove("active");
-
-            }
-
-            tablinks = document.getElementsByClassName("tab-btn");
-
-            for (i = 0; i < tablinks.length; i++) {
-
-                tablinks[i].classList.remove("active");
-
-            }
-
-            document.getElementById(abaNome).style.display = "block";
-
-            document.getElementById(abaNome).classList.add("active");
-
-
-
-            const target = (evt && evt.currentTarget) ? evt.currentTarget : document.getElementById('btn-tab-' + abaNome);
-
-            if (target) target.classList.add("active");
-
-        }
-
-
-
-        function selecionarClienteParaEdicao(id, nome) {
-
-            // Preenche campos de edição
-            document.getElementById('cli-nome').value = todosClientes[id].nome;
-            document.getElementById('cli-fone').value = todosClientes[id].fone;
-            editClienteId = id;
-            document.getElementById('btn-cli-save').innerText = "ATUALIZAR";
-
-            const itens = document.querySelectorAll('#lista-clientes .item-lista');
-            itens.forEach(item => {
-                item.classList.remove('selecionado');
-                if (item.getAttribute('data-id') === id) item.classList.add('selecionado');
-            });
-        }
-
-
-
-        function adicionarProduto() {
-
-            const desc = document.getElementById('prod-desc').value.trim();
-
-            const qtd = parseFloat(document.getElementById('prod-qtd').value);
-
-            const un = document.getElementById('prod-un').value.trim();
-
-            const precoStr = document.getElementById('prod-preco').value.replace(',', '.');
-
-            const precoUn = parseFloat(precoStr);
-
-
-
-            if (!desc || isNaN(qtd) || isNaN(precoUn)) return alert("Preencha Descrição, Quantidade e Preço corretamente!");
-
-
-
-            const precoTotalItem = (qtd * precoUn).toFixed(2);
-
-
-
-            const prodObj = {
-
-                descricao: desc,
-
-                quantidade: qtd,
-
-                unidade: un,
-
-                precoUn: precoUn.toFixed(2),
-
-                precoTotal: precoTotalItem
-
-            };
-
-
-
-            if (editProdutoIndex !== null) {
-
-                produtosTemporarios[editProdutoIndex] = prodObj;
-
-                editProdutoIndex = null;
-
-                document.getElementById('btn-prod-save').innerText = "ADICIONAR";
-
-            } else {
-
-                produtosTemporarios.push(prodObj);
-
-            }
-
-
-
-            limparCamposProduto();
-
-            renderizarProdutosTemporarios();
-
-        }
-
-
-
-        function limparCamposProduto() {
-
-            document.getElementById('prod-desc').value = "";
-
-            document.getElementById('prod-qtd').value = "1";
-
-            document.getElementById('prod-preco').value = "";
-
-            document.getElementById('prod-un').value = "";
-
-        }
-
-
-
-        function editarProduto(index) {
-
-            const prod = produtosTemporarios[index];
-
-            document.getElementById('prod-desc').value = prod.descricao;
-
-            document.getElementById('prod-qtd').value = prod.quantidade;
-
-            document.getElementById('prod-un').value = prod.unidade;
-
-            document.getElementById('prod-preco').value = prod.precoUn;
-
-            editProdutoIndex = index;
-
-            document.getElementById('btn-prod-save').innerText = "ATUALIZAR";
-
-        }
-
-
-
-        function removerProduto(index, e) {
-
-            e.stopPropagation();
-
-            produtosTemporarios.splice(index, 1);
-
-            renderizarProdutosTemporarios();
-
-        }
-
-
-
-        function renderizarProdutosTemporarios() {
-
-            const lista = document.getElementById('lista-produtos');
-
-            lista.innerHTML = "";
-
-            let somaTotal = 0;
-
-
-
-            produtosTemporarios.forEach((prod, index) => {
-
-                somaTotal += parseFloat(prod.precoTotal);
-
-                const item = document.createElement('div');
-
-                item.className = 'item-lista';
-
-                item.onclick = () => editarProduto(index);
-
-                item.innerHTML = `
-
-                <div>
-
-                    <span>${prod.quantidade} ${prod.unidade} - ${prod.descricao} (R$ ${prod.precoUn}/${prod.unidade})</span>
-
-                    <strong>R$ ${prod.precoTotal}</strong>
-
-                </div>
-
-                <button class="btn-apagar" onclick="removerProduto(${index}, event)">X</button>
-
-            `;
-
-                lista.appendChild(item);
-
-            });
-
-            document.getElementById('resumo-produtos').innerText = `Valor Total da Nota: R$${somaTotal.toFixed(2)}`;
-
-        }
-
-
-
-        function salvarNoEstoque() {
-
-            const desc = document.getElementById('est-desc').value.trim();
-
-            const un = document.getElementById('est-un').value.trim();
-
-            const preco = document.getElementById('est-preco').value.replace(',', '.');
-
-            const qtd = document.getElementById('est-qtd').value;
-
-
-
-            if (!desc || !un || isNaN(parseFloat(preco))) return alert("Preencha todos os campos do estoque!");
-
-
-
-            const dados = {
-
-                descricao: desc,
-
-                unidade: un,
-
-                preco: parseFloat(preco).toFixed(2),
-
-                quantidade: parseInt(qtd)
-
-            };
-
-
-
-            if (editEstoqueId) {
-
-                database.ref('estoque/' + editEstoqueId).update(dados).then(() => {
-
-                    editEstoqueId = null;
-
-                    document.getElementById('btn-est-save').innerText = "SALVAR";
-
-                    limparCamposEstoque();
-
-                });
-
-            } else {
-
-                database.ref('estoque').push(dados).then(() => {
-
-                    limparCamposEstoque();
-
-                });
-
-            }
-
-        }
-
-
-
-        function editarEstoque(id, dados) {
-
-            document.getElementById('est-desc').value = dados.descricao;
-
-            document.getElementById('est-un').value = dados.unidade;
-
-            document.getElementById('est-preco').value = dados.preco;
-
-            document.getElementById('est-qtd').value = dados.quantidade;
-
-            editEstoqueId = id;
-
-            document.getElementById('btn-est-save').innerText = "ATUALIZAR";
-
-        }
-
-
-
-        function apagarEstoque(id, e) {
-
-            e.stopPropagation();
-
-            if (confirm("Deseja excluir este item do estoque?")) database.ref('estoque/' + id).remove();
-
-        }
-
-
-
-        function limparCamposEstoque() {
-
-            document.getElementById('est-desc').value = "";
-
-            document.getElementById('est-un').value = "";
-
-            document.getElementById('est-preco').value = "";
-
-            document.getElementById('est-qtd').value = "0";
-
-        }
-
-
-
-        database.ref('estoque').on('value', (snapshot) => {
-
-            const lista = document.getElementById('lista-estoque');
-
-            const dataList = document.getElementById('lista-sugestoes-estoque');
-            const dataListUnidades = document.getElementById('lista-sugestoes-unidades');
-            const unidadesSet = new Set(['MT', 'PÇ', 'UNI']);
-
-            lista.innerHTML = "";
-
-            dataList.innerHTML = "";
-            if (dataListUnidades) dataListUnidades.innerHTML = "";
-
-            todosEstoque = {};
-
-
-
-            snapshot.forEach((child) => {
-
-                const item = child.val();
-
-                todosEstoque[child.key] = item;
-
-
-
-                const div = document.createElement('div');
-
-                div.className = 'item-lista';
-
-                div.onclick = () => editarEstoque(child.key, item);
-
-                div.innerHTML = `
-
-                <span>${item.descricao} (R$${item.preco} / ${item.unidade}) - Estoque: ${item.quantidade}</span>
-
-                <button class="btn-apagar" onclick="apagarEstoque('${child.key}', event)">X</button>
-
-            `;
-
-                lista.appendChild(div);
-
-
-
-                const option = document.createElement('option');
-
-                option.value = item.descricao;
-
-                dataList.appendChild(option);
-
-                if (item.unidade) unidadesSet.add(item.unidade);
-
-            });
-
-            if (dataListUnidades) {
-                unidadesSet.forEach(un => {
-                    const opt = document.createElement('option');
-                    opt.value = un;
-                    dataListUnidades.appendChild(opt);
-                });
-            }
-
-        });
-
-
-
-        document.getElementById('prod-desc').addEventListener('input', function (e) {
-
-            const descDigitada = e.target.value;
-
-            for (let id in todosEstoque) {
-
-                if (todosEstoque[id].descricao === descDigitada) {
-
-                    document.getElementById('prod-un').value = todosEstoque[id].unidade;
-
-                    document.getElementById('prod-preco').value = todosEstoque[id].preco;
-
-                    break;
-
-                }
-
-            }
-
-        });
-
-
-
-        async function gerarNotaComProdutos() {
-
-            if (estaSalvando) return;
-
-            if (!clienteSelecionadoProd) return alert("Selecione um cliente primeiro!");
-
-            if (produtosTemporarios.length === 0) return alert("Adicione ao menos um produto!");
-
-
-
-            estaSalvando = true;
-
-            atualizarLabelNota();
-
-
-
-            try {
-
-                const dataNota = document.getElementById('prod-data-info').value;
-
-                const numeroParaEstaNota = contadorNotaAtual;
-
-                let somaTotal = produtosTemporarios.reduce((acc, p) => acc + parseFloat(p.precoTotal), 0);
-
-
-
-                const novaNotaRef = database.ref('notas/' + clienteSelecionadoProd.id).push();
-
-                const notaId = novaNotaRef.key;
-
-
-
-                await novaNotaRef.set({
-
-                    numero: numeroParaEstaNota,
-
-                    dataNota,
-
-                    total: somaTotal.toFixed(2),
-
-                    situacao: "em aberto"
-
-                });
-
-
-
-                const promessasProdutos = produtosTemporarios.map(prod => {
-
-                    return database.ref('produtos/' + notaId).push(prod);
-
-                });
-
-                await Promise.all(promessasProdutos);
-
-
-
-                await database.ref('config/ultimo_id_nota').set(numeroParaEstaNota + 1);
-
-
-
-                alert("Nota Nº " + numeroParaEstaNota + " salva com sucesso!");
-
-
-
-                produtosTemporarios = [];
-
-                renderizarProdutosTemporarios();
-
-            } catch (error) {
-
-                console.error(error);
-
-                alert("Erro ao salvar nota.");
-
-            } finally {
-
-                estaSalvando = false;
-
-                atualizarLabelNota();
-
-            }
-
-        }
-
-
-
-        function apagarNota(notaId, e) {
-
-            e.stopPropagation();
-
-            if (confirm("Excluir nota permanentemente?")) {
-
-                database.ref('notas/' + clienteSelecionadoNota.id + '/' + notaId).remove();
-
-                database.ref('produtos/' + notaId).remove();
-
-                carregarNotas();
-
-            }
-
-        }
-
-
-
-        function carregarNotas() {
-
-            if (!clienteSelecionadoNota) return;
-
-            database.ref('notas/' + clienteSelecionadoNota.id).once('value', (snapshot) => {
-
-                const lista = document.getElementById('lista-notas');
-
-                lista.innerHTML = "";
-
-                let somaAberto = 0;
-
-                let notasArray = [];
-
-
-
-                snapshot.forEach((child) => {
-
-                    const dados = child.val();
-
-                    notasArray.push({ id: child.key, ...dados });
-
-                    if (dados.situacao === "em aberto") somaAberto += parseFloat(dados.total || 0);
-
-                });
-
-
-
-                document.getElementById('resumo-financeiro').innerText = `R$${somaAberto.toFixed(2)} em aberto`;
-
-                notasArray.sort((a, b) => b.numero - a.numero);
-
-
-
-                notasArray.forEach((nota) => {
-
-                    const item = document.createElement('div');
-
-                    item.className = 'item-lista';
-                    
-                    item.ondblclick = () => carregarNotaNaAbaProdutos(nota);
-
-                    item.innerHTML = `
-
-                    <div>
-
-                        <span class="num-item">${String(nota.numero).padStart(4, '0')}</span>
-
-                        <span>${nota.dataNota}</span> - <strong>R$ ${nota.total}</strong>
-
-                        <span class="${nota.situacao === 'paga' ? 'link-situacao paga' : 'link-situacao'}">(${nota.situacao})</span>
-
-                    </div>
-
-                    <button class="btn-apagar" onclick="apagarNota('${nota.id}', event)">X</button>
-
-                `;
-
-                    lista.appendChild(item);
-
-                });
-
-            });
-
-        }
-
-
-
-        function carregarNotaNaAbaProdutos(nota) {
-
-            abrirAba(null, 'produtos');
-
-            clienteSelecionadoProd = clienteSelecionadoNota;
-
-            document.getElementById('prod-cliente-info').value = clienteSelecionadoNota.nome;
-
-            document.getElementById('prod-data-info').value = nota.dataNota;
-
-            document.getElementById('id-nota-display').innerHTML = `NOTA: ${String(nota.numero).padStart(4, '0')}`;
-
-
-
-            database.ref('produtos/' + nota.id).once('value', (snapshot) => {
-
-                produtosTemporarios = [];
-
-                snapshot.forEach((child) => {
-
-                    produtosTemporarios.push(child.val());
-
-                });
-
-                renderizarProdutosTemporarios();
-
+        function updateUI() {
+            const income = parseFloat(document.getElementById('incomeInput').value) || 0;
+            const list = document.getElementById('expenseList');
+            list.innerHTML = '';
+
+            let totalExpenses = 0;
+            const values = [];
+
+            // Primeiro calculamos o total de despesas
+            expenses.forEach(exp => totalExpenses += exp.amount);
+
+            const balance = income - totalExpenses;
+            const displayBalance = balance < 0 ? 0 : balance;
+            
+            // O divisor para a porcentagem deve ser a renda total (ou a soma dos itens se a renda for 0)
+            const totalForPercentage = Math.max(income, totalExpenses);
+
+            const chartLabels = [];
+            const chartValues = [];
+
+            // Gerar labels com porcentagens para as despesas
+            expenses.forEach((exp) => {
+                const perc = totalForPercentage > 0 ? ((exp.amount / totalForPercentage) * 100).toFixed(1) : 0;
+                chartLabels.push(`${exp.description} (${perc}%)`);
+                chartValues.push(exp.amount);
                 
-
-                // Atualizar o botão de salvar para não permitir que o usuário salve em cima ou crie duplicidade facilmente se não foi instruído
-
-                // Como a instrução diz "faça somente o que eu mandar", não vou desabilitar nada.
-
-                // Mas preciso evitar conflitos de salvamento no 'ultimo_id_nota', que está no Firebase
-
+                // Lista lateral
+                const li = document.createElement('li');
+                li.innerHTML = `<span>${exp.description}</span> <strong>R$ ${exp.amount.toFixed(2)}</strong>`;
+                list.appendChild(li);
             });
 
+            // Adicionar Saldo Restante com porcentagem
+            const balancePerc = totalForPercentage > 0 ? ((displayBalance / totalForPercentage) * 100).toFixed(1) : 0;
+            chartLabels.push(`Saldo Restante (${balancePerc}%)`);
+            chartValues.push(displayBalance);
+
+            // Atualizar Saldo no Card
+            const balanceEl = document.getElementById('balanceDisplay');
+            balanceEl.innerText = `R$ ${balance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+            balanceEl.style.color = balance < 0 ? '#ff2e63' : '#00adb5';
+
+            // Atualizar Gráfico
+            myChart.data.labels = chartLabels;
+            myChart.data.datasets[0].data = chartValues;
+            
+            // Cores dinâmicas (Despesas ganham cores do índice 1 em diante, Saldo ganha a cor 0)
+            const dynamicColors = [...chartColors.slice(1, chartValues.length), chartColors[0]];
+            myChart.data.datasets[0].backgroundColor = dynamicColors;
+
+            myChart.update();
         }
 
-
-
-        function adicionarCliente() {
-
-            const nome = document.getElementById('cli-nome').value.trim();
-
-            const fone = document.getElementById('cli-fone').value.trim();
-
-            if (!nome || !fone) return alert("Preencha Nome e Telefone!");
-
-
-
-            const dados = { nome, fone };
-
-
-
-            if (editClienteId) {
-
-                database.ref('clientes/' + editClienteId).update(dados).then(() => {
-
-                    editClienteId = null;
-
-                    document.getElementById('btn-cli-save').innerText = "SALVAR";
-
-                    document.getElementById('cli-nome').value = "";
-
-                    document.getElementById('cli-fone').value = "";
-
-                });
-
-            } else {
-
-                database.ref('clientes').push(dados).then(() => {
-
-                    document.getElementById('cli-nome').value = "";
-
-                    document.getElementById('cli-fone').value = "";
-
-                });
-
-            }
-
-        }
-
-
-
-        function apagarCliente(id, e) {
-
-            e.stopPropagation();
-
-            if (confirm("Excluir cliente e todo seu histórico de notas?")) {
-
-                database.ref('clientes/' + id).remove();
-
-                database.ref('notas/' + id).remove();
-
-            }
-
-        }
-
-
-
-        database.ref('clientes').on('value', (snapshot) => {
-
-            const lista = document.getElementById('lista-clientes');
-
-            const dataList = document.getElementById('lista-sugestoes-clientes');
-
-            const dataListNotas = document.getElementById('lista-sugestoes-clientes-notas');
-
-            if (!lista) return;
-
-            lista.innerHTML = "";
-
-            dataList.innerHTML = "";
-
-            dataListNotas.innerHTML = "";
-
-            snapshot.forEach((child) => {
-
-                const cli = child.val();
-
-                todosClientes[child.key] = cli;
-
-                const item = document.createElement('div');
-
-                item.className = 'item-lista';
-
-                item.setAttribute('data-id', child.key);
-
-                item.onclick = () => selecionarClienteParaEdicao(child.key, cli.nome);
-
-                item.innerHTML = `
-
-                <span>${cli.nome} | ${cli.fone}</span>
-
-                <button class="btn-apagar" onclick="apagarCliente('${child.key}', event)">X</button>
-
-            `;
-
-                lista.appendChild(item);
-
-                const option = document.createElement('option');
-
-                option.value = cli.nome;
-
-                dataList.appendChild(option);
-
-                const optionNotas = document.createElement('option');
-
-                optionNotas.value = cli.nome;
-
-                dataListNotas.appendChild(optionNotas);
-
-            });
-
-        });
-
-
-
-        document.getElementById('prod-cliente-info').addEventListener('input', function (e) {
-
-            const nomeDigitado = e.target.value;
-
-            for (let id in todosClientes) {
-
-                if (todosClientes[id].nome === nomeDigitado) {
-
-                    clienteSelecionadoProd = { id, nome: todosClientes[id].nome };
-
-                    break;
-
-                }
-
-            }
-
-        });
-
-
-
-        document.getElementById('nota-cliente-info').addEventListener('input', function (e) {
-
-            const nomeDigitado = e.target.value;
-
-            for (let id in todosClientes) {
-
-                if (todosClientes[id].nome === nomeDigitado) {
-
-                    clienteSelecionadoNota = { id, nome: todosClientes[id].nome };
-
-                    carregarNotas();
-
-                    break;
-
-                }
-
-            }
-
-        });
-
-
-
-        function limparTudo() {
-
-            if (confirm("Deseja limpar os campos de rascunho?")) {
-
-                produtosTemporarios = [];
-
-                editClienteId = null;
-
-                editEstoqueId = null;
-
-                editProdutoIndex = null;
-
-                renderizarProdutosTemporarios();
-
-                document.querySelectorAll('input:not([type="date"])').forEach(i => i.value = "");
-
-                document.querySelectorAll('.btn-add').forEach(b => b.innerText = b.id.includes('save') ? "SALVAR" : "ADICIONAR");
-
-            }
-
-        }
-
+        document.getElementById('incomeInput').addEventListener('input', updateUI);
+        initChart();
     </script>
-
 </body>
-
 </html>
