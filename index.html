@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Controle de Despesas</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>Controle de Despesas - Regra 50/30/20</title>
     <style>
         :root {
             --bg-dark: #121212;
@@ -12,38 +11,113 @@
             --accent: #00adb5;
             --text: #eeeeee;
             --danger: #ff2e63;
+            --warning: #ffcd56;
+            --success: #00adb5;
+            --fixed-label: #f9ad6d;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             background-color: var(--bg-dark);
             color: var(--text);
             margin: 0;
             display: flex;
             justify-content: center;
-            align-items: center;
             min-height: 100vh;
         }
 
         .container {
             display: flex;
-            flex-wrap: wrap;
-            width: 90vw;
-            max-width: 1000px;
+            flex-direction: column;
+            width: 95vw;
+            max-width: 1200px;
             gap: 20px;
             padding: 20px;
         }
 
-        .sidebar, .dashboard {
+        .top-row {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 20px;
+        }
+
+        /* Responsividade para Telas Menores */
+        @media (max-width: 900px) {
+            .top-row { grid-template-columns: 1fr; }
+            .columns-container { grid-template-columns: 1fr !important; }
+            .sidebar { order: 2; }
+            .stat-card { order: 1; text-align: center; }
+        }
+
+        .sidebar, .stat-card {
             background: var(--card-bg);
             padding: 25px;
             border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-            flex: 1;
-            min-width: 340px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
         }
 
-        h2, h3 { margin-top: 0; color: var(--accent); }
+        .columns-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            align-items: flex-start;
+        }
+
+        .column {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 20px;
+            min-height: 200px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .column-header { margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 15px; }
+
+        .progress-container {
+            width: 100%;
+            height: 6px;
+            background: #333;
+            border-radius: 10px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        h2, h3 { margin: 0; color: var(--accent); }
+
+        .header-with-toggle {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        /* Estilização do Toggle Fixo/Variável */
+        .fixed-toggle {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #252525;
+            padding: 8px 16px;
+            border-radius: 30px;
+            border: 2px solid #333;
+            transition: 0.3s;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #666;
+        }
+
+        .fixed-toggle.active {
+            border-color: var(--fixed-label);
+            color: var(--fixed-label);
+            background: rgba(249, 173, 109, 0.1);
+        }
 
         .input-group {
             display: flex;
@@ -52,224 +126,295 @@
             margin-bottom: 20px;
         }
 
-        label { font-size: 0.9rem; opacity: 0.8; }
-
         input {
-            padding: 12px;
-            border-radius: 8px;
+            padding: 14px;
+            border-radius: 10px;
             border: 1px solid #333;
             background: #252525;
             color: white;
             font-size: 1rem;
+            outline: none;
+            transition: border 0.3s;
+        }
+
+        input:focus { border-color: var(--accent); }
+
+        .category-selector {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .category-option {
+            background: #252525;
+            border: 2px solid #333;
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .category-option.selected {
+            border-color: var(--accent);
+            background: rgba(0, 173, 181, 0.15);
         }
 
         button {
-            padding: 12px;
+            padding: 14px;
             background: var(--accent);
             border: none;
-            border-radius: 8px;
+            border-radius: 10px;
             color: white;
             font-weight: bold;
             cursor: pointer;
-            transition: 0.2s;
+            transition: 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
-        button:hover { background: #008d94; }
-
-        .expense-list-container {
-            max-height: 200px;
-            overflow-y: auto;
-            margin-top: 15px;
-            border-top: 1px solid #333;
-        }
+        button:hover { filter: brightness(1.1); transform: translateY(-2px); }
 
         ul { list-style: none; padding: 0; }
 
         li {
             background: #2a2a2a;
-            padding: 10px;
-            margin: 8px 0;
-            border-radius: 5px;
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.9rem;
-        }
-
-        .stat-card {
-            text-align: center;
             padding: 15px;
-            background: #252525;
-            border-radius: 10px;
-            margin-bottom: 20px;
-        }
-
-        #balanceDisplay { font-size: 2.2rem; margin: 10px 0; }
-
-        .chart-container {
+            margin-bottom: 12px;
+            border-radius: 12px;
             position: relative;
-            height: 350px;
-            width: 100%;
+            border-left: 4px solid var(--accent);
+            transition: transform 0.2s;
         }
 
-        hr { border: 0; border-top: 1px solid #333; margin: 20px 0; }
+        li:hover { transform: scale(1.02); }
+
+        .li-header { display: flex; justify-content: space-between; font-weight: 600; margin-bottom: 8px; }
+
+        /* Badges de Tipo de Gasto */
+        .badge {
+            font-size: 0.65rem;
+            padding: 2px 8px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            font-weight: 800;
+        }
+        .badge-fixo { background: rgba(249, 173, 109, 0.2); color: var(--fixed-label); }
+        .badge-var { background: rgba(0, 173, 181, 0.2); color: var(--accent); }
+
+        .btn-delete {
+            color: #555;
+            cursor: pointer;
+            padding: 5px;
+            transition: 0.2s;
+        }
+        .btn-delete:hover { color: var(--danger); }
+
+        #balanceDisplay { font-size: 3rem; margin: 10px 0; color: var(--accent); font-weight: 800; }
+        .limit-info { font-size: 0.85rem; display: flex; justify-content: space-between; margin-top: 5px; opacity: 0.8; }
+        
+        #alertMsg { color: var(--danger); font-size: 0.8rem; margin-bottom: 10px; display: none; text-align: center; }
     </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 
     <div class="container">
-        <aside class="sidebar">
-            <h2>Configurações</h2>
-            <div class="input-group">
-                <label>Renda Mensal Total (R$)</label>
-                <input type="number" id="incomeInput" placeholder="Ex: 5000" value="0">
-            </div>
+        <div class="top-row">
+            <aside class="sidebar">
+                <h2>Configurações</h2>
+                <div class="input-group">
+                    <label style="font-size: 0.85rem; color: #888;">Renda Mensal Total</label>
+                    <input type="number" id="incomeInput" oninput="updateUI()" placeholder="Ex: 5000">
+                </div>
+                <hr style="border: 0; border-top: 1px solid #333; margin: 20px 0;">
+                
+                <div class="header-with-toggle">
+                    <h3>Novo Gasto</h3>
+                    <div id="fixedBtn" class="fixed-toggle" onclick="toggleFixed()">
+                        <i id="fixedIcon" class="fas fa-unlock"></i>
+                        <span id="fixedLabel">Variável</span>
+                    </div>
+                </div>
 
-            <hr>
+                <div id="alertMsg"><i class="fas fa-exclamation-circle"></i> Selecione uma categoria!</div>
+                
+                <div class="category-selector" id="categorySelector">
+                    <div class="category-option" onclick="selectCategory(this, '50')">
+                        <i class="fas fa-house"></i>
+                        <span>50%</span>
+                    </div>
+                    <div class="category-option" onclick="selectCategory(this, '30')">
+                        <i class="fas fa-star"></i>
+                        <span>30%</span>
+                    </div>
+                    <div class="category-option" onclick="selectCategory(this, '20')">
+                        <i class="fas fa-piggy-bank"></i>
+                        <span>20%</span>
+                    </div>
+                </div>
 
-            <h3>Adicionar Despesa</h3>
-            <div class="input-group">
-                <input type="text" id="descInput" placeholder="Descrição (Ex: Mercado)">
-                <input type="number" id="amountInput" placeholder="Valor (R$)">
-                <button onclick="addExpense()">Adicionar Despesa</button>
-            </div>
+                <div class="input-group">
+                    <input type="text" id="descInput" placeholder="Descrição (ex: Internet)">
+                    <input type="number" id="amountInput" placeholder="Valor (R$)">
+                    <button onclick="addExpense()">Adicionar Gasto</button>
+                </div>
+            </aside>
 
-            <div class="expense-list-container">
-                <ul id="expenseList"></ul>
-            </div>
-        </aside>
-
-        <main class="dashboard">
             <div class="stat-card">
-                <span>Saldo Restante</span>
+                <span>Saldo Disponível Geral</span>
                 <h2 id="balanceDisplay">R$ 0,00</h2>
+                <p id="summaryText" style="font-size: 0.9rem; color: #888;"></p>
             </div>
-            
-            <div class="chart-container">
-                <canvas id="expenseChart"></canvas>
+        </div>
+
+        <div class="columns-container">
+            <!-- As colunas seguem a mesma lógica mas com design polido -->
+            <div class="column" id="col-50">
+                <div class="column-header">
+                    <h3>Necessidades</h3>
+                    <div class="limit-info">
+                        <span id="total-50">R$ 0,00</span>
+                        <span id="limit-50">Limite: R$ 0,00</span>
+                    </div>
+                    <div class="progress-container"><div id="bar-50" class="progress-bar"></div></div>
+                </div>
+                <ul id="list-50"></ul>
             </div>
-        </main>
+
+            <div class="column" id="col-30">
+                <div class="column-header">
+                    <h3>Desejos</h3>
+                    <div class="limit-info">
+                        <span id="total-30">R$ 0,00</span>
+                        <span id="limit-30">Limite: R$ 0,00</span>
+                    </div>
+                    <div class="progress-container"><div id="bar-30" class="progress-bar"></div></div>
+                </div>
+                <ul id="list-30"></ul>
+            </div>
+
+            <div class="column" id="col-20">
+                <div class="column-header">
+                    <h3>Futuro</h3>
+                    <div class="limit-info">
+                        <span id="total-20">R$ 0,00</span>
+                        <span id="limit-20">Limite: R$ 0,00</span>
+                    </div>
+                    <div class="progress-container"><div id="bar-20" class="progress-bar"></div></div>
+                </div>
+                <ul id="list-20"></ul>
+            </div>
+        </div>
     </div>
 
     <script>
         let expenses = [];
-        let myChart;
+        let selectedRule = null;
+        let isFixed = false;
 
-        // Cores vibrantes
-        const chartColors = [
-            '#36a2eb', // Saldo (Azul)
-            '#ff6384', // Rosa
-            '#ff9f40', // Laranja
-            '#4bc0c0', // Ciano
-            '#9966ff', // Roxo
-            '#ffcd56', // Amarelo
-            '#c9cbcf'  // Cinza
-        ];
+        function toggleFixed() {
+            isFixed = !isFixed;
+            const btn = document.getElementById('fixedBtn');
+            const icon = document.getElementById('fixedIcon');
+            const label = document.getElementById('fixedLabel');
+            
+            btn.classList.toggle('active', isFixed);
+            icon.className = isFixed ? 'fas fa-lock' : 'fas fa-unlock';
+            label.innerText = isFixed ? 'Fixo' : 'Variável';
+        }
 
-        const ctx = document.getElementById('expenseChart').getContext('2d');
-        
-        function initChart() {
-            myChart = new Chart(ctx, {
-                type: 'pie',
-                data: {
-                    labels: ['Saldo Disponível (100%)'],
-                    datasets: [{
-                        data: [100],
-                        backgroundColor: chartColors,
-                        borderColor: '#1e1e1e',
-                        borderWidth: 3
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: { color: '#eeeeee', padding: 20 }
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return ` R$ ${context.parsed.toFixed(2)}`;
-                                }
-                            }
-                        }
-                    }
-                }
-            });
+        function selectCategory(element, rule) {
+            document.getElementById('alertMsg').style.display = 'none';
+            document.querySelectorAll('.category-option').forEach(opt => opt.classList.remove('selected'));
+            element.classList.add('selected');
+            selectedRule = rule;
         }
 
         function addExpense() {
-            const descEl = document.getElementById('descInput');
-            const amountEl = document.getElementById('amountInput');
-            const description = descEl.value;
-            const amount = parseFloat(amountEl.value);
-
-            if (description && amount > 0) {
-                expenses.push({ description, amount });
-                descEl.value = '';
-                amountEl.value = '';
-                updateUI();
-            } else {
-                alert("Insira uma descrição e um valor válido.");
+            const desc = document.getElementById('descInput').value;
+            const amount = parseFloat(document.getElementById('amountInput').value);
+            
+            if (!selectedRule) {
+                document.getElementById('alertMsg').style.display = 'block';
+                return;
             }
+
+            if (desc && amount > 0) {
+                expenses.unshift({
+                    id: Date.now(),
+                    desc,
+                    amount,
+                    isFixed,
+                    rule: selectedRule
+                });
+                
+                document.getElementById('descInput').value = '';
+                document.getElementById('amountInput').value = '';
+                updateUI();
+            }
+        }
+
+        function deleteExpense(id) {
+            expenses = expenses.filter(e => e.id !== id);
+            updateUI();
         }
 
         function updateUI() {
             const income = parseFloat(document.getElementById('incomeInput').value) || 0;
-            const list = document.getElementById('expenseList');
-            list.innerHTML = '';
+            const containers = { '50': document.getElementById('list-50'), '30': document.getElementById('list-30'), '20': document.getElementById('list-20') };
+            const totals = { '50': 0, '30': 0, '20': 0 };
 
-            let totalExpenses = 0;
-            const values = [];
+            Object.values(containers).forEach(c => c.innerHTML = '');
 
-            // Primeiro calculamos o total de despesas
-            expenses.forEach(exp => totalExpenses += exp.amount);
-
-            const balance = income - totalExpenses;
-            const displayBalance = balance < 0 ? 0 : balance;
-            
-            // O divisor para a porcentagem deve ser a renda total (ou a soma dos itens se a renda for 0)
-            const totalForPercentage = Math.max(income, totalExpenses);
-
-            const chartLabels = [];
-            const chartValues = [];
-
-            // Gerar labels com porcentagens para as despesas
-            expenses.forEach((exp) => {
-                const perc = totalForPercentage > 0 ? ((exp.amount / totalForPercentage) * 100).toFixed(1) : 0;
-                chartLabels.push(`${exp.description} (${perc}%)`);
-                chartValues.push(exp.amount);
-                
-                // Lista lateral
+            expenses.forEach(exp => {
+                totals[exp.rule] += exp.amount;
                 const li = document.createElement('li');
-                li.innerHTML = `<span>${exp.description}</span> <strong>R$ ${exp.amount.toFixed(2)}</strong>`;
-                list.appendChild(li);
+                const badgeClass = exp.isFixed ? 'badge-fixo' : 'badge-var';
+                const badgeText = exp.isFixed ? 'Fixo' : 'Variável';
+
+                li.innerHTML = `
+                    <div class="li-header">
+                        <span>${exp.desc}</span>
+                        <span>R$ ${exp.amount.toFixed(2)}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span class="badge ${badgeClass}">${badgeText}</span>
+                        <i class="fas fa-trash-alt btn-delete" onclick="deleteExpense(${exp.id})"></i>
+                    </div>
+                `;
+                containers[exp.rule].appendChild(li);
             });
 
-            // Adicionar Saldo Restante com porcentagem
-            const balancePerc = totalForPercentage > 0 ? ((displayBalance / totalForPercentage) * 100).toFixed(1) : 0;
-            chartLabels.push(`Saldo Restante (${balancePerc}%)`);
-            chartValues.push(displayBalance);
+            // Atualiza Barras e Limites
+            ['50', '30', '20'].forEach(rule => {
+                const limit = income * (parseInt(rule)/100);
+                const total = totals[rule];
+                const perc = limit > 0 ? (total / limit) * 100 : 0;
 
-            // Atualizar Saldo no Card
+                document.getElementById(`total-${rule}`).innerText = `Gasto: R$ ${total.toFixed(2)}`;
+                document.getElementById(`limit-${rule}`).innerText = `Limite: R$ ${limit.toFixed(2)}`;
+                
+                const bar = document.getElementById(`bar-${rule}`);
+                bar.style.width = Math.min(perc, 100) + '%';
+                bar.style.backgroundColor = perc > 100 ? 'var(--danger)' : perc > 80 ? 'var(--warning)' : 'var(--success)';
+            });
+
+            const totalSpent = Object.values(totals).reduce((a, b) => a + b, 0);
+            const balance = income - totalSpent;
             const balanceEl = document.getElementById('balanceDisplay');
             balanceEl.innerText = `R$ ${balance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
-            balanceEl.style.color = balance < 0 ? '#ff2e63' : '#00adb5';
-
-            // Atualizar Gráfico
-            myChart.data.labels = chartLabels;
-            myChart.data.datasets[0].data = chartValues;
+            balanceEl.style.color = balance < 0 ? 'var(--danger)' : 'var(--accent)';
             
-            // Cores dinâmicas (Despesas ganham cores do índice 1 em diante, Saldo ganha a cor 0)
-            const dynamicColors = [...chartColors.slice(1, chartValues.length), chartColors[0]];
-            myChart.data.datasets[0].backgroundColor = dynamicColors;
-
-            myChart.update();
+            document.getElementById('summaryText').innerText = income > 0 
+                ? `Você já comprometeu ${((totalSpent/income)*100).toFixed(1)}% da sua renda.`
+                : "Insira sua renda para calcular os limites.";
         }
-
-        document.getElementById('incomeInput').addEventListener('input', updateUI);
-        initChart();
     </script>
 </body>
 </html>
