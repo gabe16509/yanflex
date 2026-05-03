@@ -165,7 +165,6 @@
 
         button:hover { transform: scale(1.02); filter: brightness(1.1); }
 
-        /* --- CATEGORIAS COM PREENCHIMENTO --- */
         .category-option {
             background: #1a1a1a;
             border-radius: 16px;
@@ -176,60 +175,89 @@
             text-align: center;
             opacity: 0.7;
             position: relative;
-            overflow: hidden; /* Garante que o preenchimento não saia do card */
+            overflow: hidden;
             z-index: 1;
         }
 
-        /* O preenchimento líquido */
         .category-option .fill {
             position: absolute;
             bottom: 0;
             left: 0;
             width: 100%;
-            height: 0%; /* Controlado pelo JS */
+            height: 0%;
             background: rgba(0, 173, 181, 0.1);
             transition: height 0.6s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.4s;
-            z-index: -1; /* Fica atrás do ícone e texto */
+            z-index: -1;
         }
 
-        .category-option i, .category-option div {
-            position: relative;
-            z-index: 2;
-        }
+        .category-option i, .category-option div { position: relative; z-index: 2; }
+        .category-option i { font-size: 1.2rem; transition: 0.3s; }
+        .category-option.selected { opacity: 1; border-color: var(--accent); transform: translateY(-5px); }
 
-        .category-option i {
-            font-size: 1.2rem;
-            transition: 0.3s;
-        }
-
-        .category-option.selected {
-            opacity: 1;
-            border-color: var(--accent);
-            transform: translateY(-5px);
-        }
-
-        /* Cores dinâmicas do preenchimento */
         .category-option.status-warning .fill { background: rgba(255, 184, 0, 0.15); }
         .category-option.status-danger .fill { background: rgba(255, 77, 77, 0.2); }
-
-        /* Estados Visuais dos Ícones */
         .category-option.status-ok i { color: var(--accent); }
         .category-option.status-warning i { color: var(--warning); }
-        .category-option.status-danger { 
-            opacity: 0.4; 
-            pointer-events: none; 
-            filter: grayscale(0.5);
-        }
+        .category-option.status-danger { opacity: 0.4; pointer-events: none; filter: grayscale(0.5); }
         .category-option.status-danger i { color: var(--danger); }
 
         ul { padding: 0; margin-top: 25px; }
+
+        /* --- ESTILIZAÇÃO DOS NOVOS CARDS DE GASTO --- */
         li {
             background: #1a1a1a;
             padding: 16px;
             margin-bottom: 12px;
             border-radius: 16px;
             border-left: 4px solid var(--accent);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            position: relative;
         }
+
+        .expense-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .expense-type-tag {
+            font-size: 0.6rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: rgba(255,255,255,0.05);
+        }
+
+        .expense-amount {
+            font-family: 'Inter', monospace;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .expense-desc {
+            font-size: 0.9rem;
+            font-weight: 400;
+            color: var(--text-primary);
+            line-height: 1.4;
+            word-break: break-word;
+            padding-right: 25px; /* Espaço para o lixo */
+        }
+
+        .delete-btn {
+            position: absolute;
+            bottom: 16px;
+            right: 16px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            color: #444;
+            transition: 0.2s;
+        }
+
+        .delete-btn:hover { color: var(--danger); }
 
         .fixed-toggle {
             cursor: pointer;
@@ -242,7 +270,6 @@
         }
 
         .fixed-toggle.active { color: var(--fixed-label); border-color: var(--fixed-label); }
-
         #alertMsg { color: var(--danger); font-size: 0.8rem; margin: 10px 0; text-align: center; display: none; font-weight: 600;}
     </style>
 </head>
@@ -297,7 +324,6 @@
         </div>
 
         <div class="columns-container">
-            <!-- As colunas permanecem iguais para manter a estrutura -->
             <div class="column">
                 <div class="column-header">
                     <h3>Essenciais</h3>
@@ -397,9 +423,7 @@
             }
 
             const limit = currentStatus.income * (parseInt(selectedRule) / 100);
-            const currentSpent = currentStatus.spent[selectedRule];
-            
-            if (currentSpent + amount > limit) {
+            if (currentStatus.spent[selectedRule] + amount > limit) {
                 alert.innerText = `Limite insuficiente na categoria ${selectedRule}%!`;
                 alert.style.display = "block";
                 return;
@@ -407,7 +431,6 @@
             
             alert.style.display = "none";
             push(expensesRef, { desc, amount, isFixed, rule: selectedRule, timestamp: Date.now() });
-            
             document.getElementById('descInput').value = '';
             document.getElementById('amountInput').value = '';
             resetCategorySelection(); 
@@ -431,10 +454,17 @@
                 Object.entries(data).forEach(([id, exp]) => {
                     totals[exp.rule] += exp.amount;
                     const li = document.createElement('li');
-                    li.style.display = "flex";
-                    li.style.justifyContent = "space-between";
-                    li.innerHTML = `<div><div style="font-weight:600">${exp.desc}</div><small style="color:${exp.isFixed?'var(--fixed-label)':'var(--accent)'}">${exp.isFixed?'FIXO':'VARIÁVEL'}</small></div>
-                                    <div style="text-align:right"><div>R$ ${exp.amount.toFixed(2)}</div><i class="fas fa-trash-alt" style="cursor:pointer; font-size:0.8rem; color:#444" onclick="deleteExpense('${id}')"></i></div>`;
+                    li.style.borderLeftColor = exp.isFixed ? 'var(--fixed-label)' : 'var(--accent)';
+                    li.innerHTML = `
+                        <div class="expense-top">
+                            <span class="expense-type-tag" style="color:${exp.isFixed?'var(--fixed-label)':'var(--accent)'}">
+                                ${exp.isFixed ? 'Fixo' : 'Variável'}
+                            </span>
+                            <span class="expense-amount">R$ ${exp.amount.toFixed(2)}</span>
+                        </div>
+                        <div class="expense-desc">${exp.desc}</div>
+                        <i class="fas fa-trash-alt delete-btn" onclick="deleteExpense('${id}')"></i>
+                    `;
                     lists[exp.rule].appendChild(li);
                 });
             }
@@ -447,7 +477,6 @@
                 const remaining = limit - spent;
                 const perc = limit > 0 ? (spent / limit) * 100 : 0;
 
-                // UI das Colunas
                 document.getElementById(`limit-${rule}`).innerText = `R$ ${limit.toFixed(2)}`;
                 document.getElementById(`spent-${rule}`).parentElement.querySelector('.val-text').innerText = `- R$ ${spent.toFixed(2)}`;
                 const remEl = document.getElementById(`remaining-${rule}`);
@@ -458,16 +487,12 @@
                 bar.style.width = Math.min(perc, 100) + '%';
                 bar.style.backgroundColor = perc >= 100 ? 'var(--danger)' : (perc > 80 ? 'var(--warning)' : 'var(--success)');
 
-                // --- FEEDBACK NO QUADRADO (PREENCHIMENTO) ---
                 const optBox = document.getElementById(`opt-${rule}`);
                 const fill = document.getElementById(`fill-${rule}`);
                 const icon = document.getElementById(`icon-${rule}`);
-                
-                // Atualiza a altura do preenchimento líquido
                 fill.style.height = Math.min(perc, 100) + '%';
 
                 optBox.classList.remove('status-ok', 'status-warning', 'status-danger');
-                
                 if (perc >= 100) {
                     optBox.classList.add('status-danger');
                     icon.className = `fas fa-lock`;
