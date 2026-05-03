@@ -3,23 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Controle de Despesas - Regra 50/30/20</title>
+    <title>Controle Financeiro - 50/30/20</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --bg-dark: #121212;
-            --card-bg: #1e1e1e;
+            --bg-dark: #0a0a0a;
+            --card-bg: #141414;
             --accent: #00adb5;
-            --text: #eeeeee;
-            --danger: #ff2e63;
-            --warning: #ffcd56;
-            --success: #21bf73; /* Verde semáforo */
+            --text-primary: #ffffff;
+            --text-label: #888888;
+            --danger: #ff4d4d;
+            --warning: #ffb800;
+            --success: #00e676; 
             --fixed-label: #f9ad6d;
         }
 
         body {
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Inter', sans-serif;
             background-color: var(--bg-dark);
-            color: var(--text);
+            color: var(--text-primary);
             margin: 0;
             display: flex;
             justify-content: center;
@@ -27,235 +30,281 @@
         }
 
         .container {
+            width: 100%;
+            max-width: 1200px;
+            gap: 24px;
+            padding: 24px;
             display: flex;
             flex-direction: column;
-            width: 95vw;
-            max-width: 1200px;
-            gap: 20px;
-            padding: 20px;
+            box-sizing: border-box;
         }
 
         .top-row {
             display: grid;
-            grid-template-columns: 350px 1fr;
-            gap: 20px;
+            grid-template-columns: 380px 1fr;
+            gap: 24px;
         }
 
-        @media (max-width: 900px) {
+        @media (max-width: 950px) {
             .top-row { grid-template-columns: 1fr; }
             .columns-container { grid-template-columns: 1fr !important; }
         }
 
-        .sidebar, .stat-card {
+        .sidebar, .stat-card, .column {
             background: var(--card-bg);
-            padding: 25px;
-            border-radius: 15px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            padding: 30px;
+            border-radius: 24px;
+            border: 1px solid rgba(255,255,255,0.03);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+
+        .stat-card {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: radial-gradient(circle at top right, #1a1a1a, #141414);
+        }
+
+        .stat-card span {
+            color: var(--text-label);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 0.7rem;
+            font-weight: 700;
+        }
+
+        #balanceDisplay { 
+            font-size: 3.8rem; 
+            margin: 10px 0; 
+            font-weight: 800; 
+            letter-spacing: -3px;
         }
 
         .columns-container {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-            align-items: flex-start;
+            gap: 24px;
         }
 
-        .column {
-            background: var(--card-bg);
-            border-radius: 15px;
-            padding: 20px;
-            min-height: 200px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        .column-header h3 { 
+            margin: 0 0 20px 0; 
+            font-size: 1.1rem;
+            font-weight: 600;
+            letter-spacing: -0.5px;
         }
 
-        .column-header { margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 15px; }
+        .values-row {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(255,255,255,0.02);
+            border-radius: 16px;
+        }
+
+        .subtraction-line {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+            color: var(--text-label);
+        }
+
+        .subtraction-line.result {
+            margin-top: 8px;
+            padding-top: 12px;
+            border-top: 1px dashed #333;
+            font-weight: 600;
+        }
+
+        .val-text {
+            color: var(--text-primary);
+            font-family: 'Inter', monospace;
+        }
 
         .progress-container {
             width: 100%;
-            height: 10px;
-            background: #333;
+            height: 6px;
+            background: #222;
             border-radius: 10px;
-            margin-top: 10px;
             overflow: hidden;
         }
 
         .progress-bar {
             height: 100%;
             width: 0%;
-            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s;
+            transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        h2, h3 { margin: 0; color: var(--accent); }
+        input {
+            padding: 16px;
+            border-radius: 14px;
+            border: 1px solid #222;
+            background: #1a1a1a;
+            color: white;
+            font-size: 1rem;
+            width: 100%;
+            box-sizing: border-box;
+            transition: 0.3s;
+        }
 
-        .header-with-toggle {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
+        input:focus { border-color: var(--accent); outline: none; }
+
+        button {
+            padding: 18px;
+            background: var(--accent);
+            border: none;
+            border-radius: 14px;
+            color: #000;
+            font-weight: 800;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover { transform: scale(1.02); filter: brightness(1.1); }
+
+        /* --- CATEGORIAS COM PREENCHIMENTO --- */
+        .category-option {
+            background: #1a1a1a;
+            border-radius: 16px;
+            padding: 20px 10px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-align: center;
+            opacity: 0.7;
+            position: relative;
+            overflow: hidden; /* Garante que o preenchimento não saia do card */
+            z-index: 1;
+        }
+
+        /* O preenchimento líquido */
+        .category-option .fill {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 0%; /* Controlado pelo JS */
+            background: rgba(0, 173, 181, 0.1);
+            transition: height 0.6s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.4s;
+            z-index: -1; /* Fica atrás do ícone e texto */
+        }
+
+        .category-option i, .category-option div {
+            position: relative;
+            z-index: 2;
+        }
+
+        .category-option i {
+            font-size: 1.2rem;
+            transition: 0.3s;
+        }
+
+        .category-option.selected {
+            opacity: 1;
+            border-color: var(--accent);
+            transform: translateY(-5px);
+        }
+
+        /* Cores dinâmicas do preenchimento */
+        .category-option.status-warning .fill { background: rgba(255, 184, 0, 0.15); }
+        .category-option.status-danger .fill { background: rgba(255, 77, 77, 0.2); }
+
+        /* Estados Visuais dos Ícones */
+        .category-option.status-ok i { color: var(--accent); }
+        .category-option.status-warning i { color: var(--warning); }
+        .category-option.status-danger { 
+            opacity: 0.4; 
+            pointer-events: none; 
+            filter: grayscale(0.5);
+        }
+        .category-option.status-danger i { color: var(--danger); }
+
+        ul { padding: 0; margin-top: 25px; }
+        li {
+            background: #1a1a1a;
+            padding: 16px;
+            margin-bottom: 12px;
+            border-radius: 16px;
+            border-left: 4px solid var(--accent);
         }
 
         .fixed-toggle {
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: #252525;
             padding: 8px 16px;
-            border-radius: 30px;
-            border: 2px solid #333;
-            transition: 0.3s;
-            font-size: 0.85rem;
-            font-weight: 600;
-        }
-
-        .fixed-toggle.active {
-            border-color: var(--fixed-label);
-            color: var(--fixed-label);
-            background: rgba(249, 173, 109, 0.1);
-        }
-
-        .category-selector {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-
-        .category-option {
-            background: #252525;
-            border: 2px solid #333;
+            background: #1a1a1a;
             border-radius: 12px;
-            padding: 12px;
-            text-align: center;
-            cursor: pointer;
-            transition: 0.2s;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 5px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            border: 1px solid #222;
         }
 
-        .cat-green { border-color: var(--success); color: var(--success); }
-        .cat-yellow { border-color: var(--warning); color: var(--warning); }
-        .cat-red { 
-            border-color: var(--danger); 
-            color: var(--danger); 
-            cursor: not-allowed; 
-            opacity: 0.6;
-        }
+        .fixed-toggle.active { color: var(--fixed-label); border-color: var(--fixed-label); }
 
-        .category-option.selected {
-            background: rgba(255, 255, 255, 0.1);
-            box-shadow: 0 0 10px rgba(0, 173, 181, 0.3);
-            border-color: var(--accent);
-        }
-
-        .input-group {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin-bottom: 20px;
-        }
-
-        input {
-            padding: 14px;
-            border-radius: 10px;
-            border: 1px solid #333;
-            background: #252525;
-            color: white;
-            outline: none;
-        }
-
-        button {
-            padding: 14px;
-            background: var(--accent);
-            border: none;
-            border-radius: 10px;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-
-        ul { list-style: none; padding: 0; }
-        li {
-            background: #2a2a2a;
-            padding: 12px;
-            margin-bottom: 8px;
-            border-radius: 10px;
-            border-left: 4px solid var(--accent);
-        }
-
-        .li-header { display: flex; justify-content: space-between; font-weight: 600; }
-        .btn-delete { color: #555; cursor: pointer; }
-        .btn-delete:hover { color: var(--danger); }
-
-        #balanceDisplay { font-size: 3rem; margin: 10px 0; font-weight: 800; }
-        .limit-info { font-size: 0.8rem; display: flex; flex-direction: column; gap: 2px; margin-top: 5px; }
-        .remaining-val { font-weight: bold; font-size: 0.9rem; }
-        
-        #alertMsg { color: var(--danger); font-size: 0.8rem; margin-bottom: 10px; display: none; text-align: center; }
+        #alertMsg { color: var(--danger); font-size: 0.8rem; margin: 10px 0; text-align: center; display: none; font-weight: 600;}
     </style>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 
     <div class="container">
         <div class="top-row">
             <aside class="sidebar">
-                <h2>Configurações</h2>
-                <div class="input-group">
-                    <label style="font-size: 0.85rem; color: #888;">Renda Mensal Total</label>
-                    <input type="number" id="incomeInput" placeholder="Ex: 5000">
-                </div>
-                <hr style="border: 0; border-top: 1px solid #333; margin: 20px 0;">
+                <h2 style="font-size: 1.4rem; margin-bottom: 25px;">Dashboard</h2>
                 
-                <div class="header-with-toggle">
-                    <h3>Novo Gasto</h3>
-                    <div id="fixedBtn" class="fixed-toggle">
-                        <i id="fixedIcon" class="fas fa-unlock"></i>
-                        <span id="fixedLabel">Variável</span>
+                <div style="margin-bottom: 20px;">
+                    <span style="font-size: 0.7rem; color: var(--text-label); font-weight: 800;">RENDA MENSAL</span>
+                    <input type="number" id="incomeInput" placeholder="R$ 0,00" style="margin-top: 8px;">
+                </div>
+
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 15px;">
+                    <span style="font-size: 0.8rem; font-weight: 600;">Novo Gasto</span>
+                    <div id="fixedBtn" class="fixed-toggle"><i id="fixedIcon" class="fas fa-unlock"></i> <span id="fixedLabel">Variável</span></div>
+                </div>
+
+                <div class="category-selector" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px;">
+                    <div class="category-option status-ok" data-rule="50" id="opt-50">
+                        <div class="fill" id="fill-50"></div>
+                        <i class="fas fa-bolt" id="icon-50"></i>
+                        <div style="font-size: 0.7rem; font-weight: 800; margin-top: 5px;">50%</div>
+                    </div>
+                    <div class="category-option status-ok" data-rule="30" id="opt-30">
+                        <div class="fill" id="fill-30"></div>
+                        <i class="fas fa-heart" id="icon-30"></i>
+                        <div style="font-size: 0.7rem; font-weight: 800; margin-top: 5px;">30%</div>
+                    </div>
+                    <div class="category-option status-ok" data-rule="20" id="opt-20">
+                        <div class="fill" id="fill-20"></div>
+                        <i class="fas fa-piggy-bank" id="icon-20"></i>
+                        <div style="font-size: 0.7rem; font-weight: 800; margin-top: 5px;">20%</div>
                     </div>
                 </div>
 
                 <div id="alertMsg"></div>
                 
-                <div class="category-selector" id="categorySelector">
-                    <div class="category-option" id="opt-50" data-rule="50">
-                        <i class="fas fa-house"></i>
-                        <span>50%</span>
-                    </div>
-                    <div class="category-option" id="opt-30" data-rule="30">
-                        <i class="fas fa-star"></i>
-                        <span>30%</span>
-                    </div>
-                    <div class="category-option" id="opt-20" data-rule="20">
-                        <i class="fas fa-piggy-bank"></i>
-                        <span>20%</span>
-                    </div>
-                </div>
-
-                <div class="input-group">
-                    <input type="text" id="descInput" placeholder="Descrição">
-                    <input type="number" id="amountInput" placeholder="Valor (R$)">
-                    <button id="addBtn">Adicionar Gasto</button>
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    <input type="text" id="descInput" placeholder="O que você comprou?">
+                    <input type="number" id="amountInput" placeholder="Valor R$">
+                    <button id="addBtn">ADICIONAR</button>
                 </div>
             </aside>
 
             <div class="stat-card">
-                <span>Saldo Disponível Geral</span>
+                <span>Disponível Total</span>
                 <h2 id="balanceDisplay">R$ 0,00</h2>
-                <p id="summaryText" style="font-size: 0.9rem; color: #888;"></p>
             </div>
         </div>
 
         <div class="columns-container">
+            <!-- As colunas permanecem iguais para manter a estrutura -->
             <div class="column">
                 <div class="column-header">
-                    <h3>Necessidades (50%)</h3>
-                    <div class="limit-info">
-                        <span id="limit-50">Limite: R$ 0,00</span>
-                        <span class="remaining-val" id="rem-50">Resta: R$ 0,00</span>
+                    <h3>Essenciais</h3>
+                    <div class="values-row">
+                        <div class="subtraction-line"><span>Limite</span><span class="val-text" id="limit-50">R$ 0,00</span></div>
+                        <div class="subtraction-line"><span>Gastos</span><span class="val-text" style="color: var(--danger)">- R$ 0,00</span><span id="spent-50" style="display:none">0</span></div>
+                        <div class="subtraction-line result"><span>Resta</span><span class="val-text" id="remaining-50" style="font-size: 1rem;">R$ 0,00</span></div>
                     </div>
                     <div class="progress-container"><div id="bar-50" class="progress-bar"></div></div>
                 </div>
@@ -264,10 +313,11 @@
 
             <div class="column">
                 <div class="column-header">
-                    <h3>Desejos (30%)</h3>
-                    <div class="limit-info">
-                        <span id="limit-30">Limite: R$ 0,00</span>
-                        <span class="remaining-val" id="rem-30">Resta: R$ 0,00</span>
+                    <h3>Desejos</h3>
+                    <div class="values-row">
+                        <div class="subtraction-line"><span>Limite</span><span class="val-text" id="limit-30">R$ 0,00</span></div>
+                        <div class="subtraction-line"><span>Gastos</span><span class="val-text" style="color: var(--danger)">- R$ 0,00</span><span id="spent-30" style="display:none">0</span></div>
+                        <div class="subtraction-line result"><span>Resta</span><span class="val-text" id="remaining-30" style="font-size: 1rem;">R$ 0,00</span></div>
                     </div>
                     <div class="progress-container"><div id="bar-30" class="progress-bar"></div></div>
                 </div>
@@ -276,10 +326,11 @@
 
             <div class="column">
                 <div class="column-header">
-                    <h3>Futuro (20%)</h3>
-                    <div class="limit-info">
-                        <span id="limit-20">Limite: R$ 0,00</span>
-                        <span class="remaining-val" id="rem-20">Resta: R$ 0,00</span>
+                    <h3>Futuro</h3>
+                    <div class="values-row">
+                        <div class="subtraction-line"><span>Limite</span><span class="val-text" id="limit-20">R$ 0,00</span></div>
+                        <div class="subtraction-line"><span>Gastos</span><span class="val-text" style="color: var(--danger)">- R$ 0,00</span><span id="spent-20" style="display:none">0</span></div>
+                        <div class="subtraction-line result"><span>Resta</span><span class="val-text" id="remaining-20" style="font-size: 1rem;">R$ 0,00</span></div>
                     </div>
                     <div class="progress-container"><div id="bar-20" class="progress-bar"></div></div>
                 </div>
@@ -309,7 +360,14 @@
 
         let selectedRule = null;
         let isFixed = false;
-        let categoryStatus = { '50': false, '30': false, '20': false };
+        let currentStatus = { income: 0, spent: { '50': 0, '30': 0, '20': 0 } };
+
+        const iconMap = { '50': 'fa-bolt', '30': 'fa-heart', '20': 'fa-piggy-bank' };
+
+        function resetCategorySelection() {
+            selectedRule = null;
+            document.querySelectorAll('.category-option').forEach(o => o.classList.remove('selected'));
+        }
 
         document.getElementById('fixedBtn').onclick = () => {
             isFixed = !isFixed;
@@ -318,56 +376,50 @@
             document.getElementById('fixedLabel').innerText = isFixed ? 'Fixo' : 'Variável';
         };
 
-        document.querySelectorAll('.category-option').forEach(option => {
-            option.onclick = function() {
-                const rule = this.getAttribute('data-rule');
-                if (categoryStatus[rule]) {
-                    showAlert("Esta categoria está lotada!");
-                    return;
-                }
-                document.getElementById('alertMsg').style.display = 'none';
-                document.querySelectorAll('.category-option').forEach(opt => opt.classList.remove('selected'));
+        document.querySelectorAll('.category-option').forEach(opt => {
+            opt.onclick = function() {
+                if(this.classList.contains('status-danger')) return;
+                document.querySelectorAll('.category-option').forEach(o => o.classList.remove('selected'));
                 this.classList.add('selected');
-                selectedRule = rule;
+                selectedRule = this.dataset.rule;
             }
         });
 
-        function showAlert(msg) {
-            const el = document.getElementById('alertMsg');
-            el.innerText = msg;
-            el.style.display = 'block';
-        }
-
-        document.getElementById('addBtn').onclick = function() {
+        document.getElementById('addBtn').onclick = () => {
             const desc = document.getElementById('descInput').value;
             const amount = parseFloat(document.getElementById('amountInput').value);
+            const alert = document.getElementById('alertMsg');
             
-            if (!selectedRule) return showAlert("Selecione uma categoria!");
-            if (!desc || isNaN(amount)) return showAlert("Preencha descrição e valor!");
+            if(!selectedRule || !desc || isNaN(amount)) {
+                alert.innerText = "Selecione uma categoria e preencha os campos!";
+                alert.style.display = "block";
+                return;
+            }
 
+            const limit = currentStatus.income * (parseInt(selectedRule) / 100);
+            const currentSpent = currentStatus.spent[selectedRule];
+            
+            if (currentSpent + amount > limit) {
+                alert.innerText = `Limite insuficiente na categoria ${selectedRule}%!`;
+                alert.style.display = "block";
+                return;
+            }
+            
+            alert.style.display = "none";
             push(expensesRef, { desc, amount, isFixed, rule: selectedRule, timestamp: Date.now() });
             
-            // Limpa os campos de texto
             document.getElementById('descInput').value = '';
             document.getElementById('amountInput').value = '';
-            
-            // LIMPA A CATEGORIA SELECIONADA PARA EVITAR ADIÇÃO ERRADA
-            selectedRule = null;
-            document.querySelectorAll('.category-option').forEach(opt => opt.classList.remove('selected'));
+            resetCategorySelection(); 
         };
 
         document.getElementById('incomeInput').onchange = (e) => set(incomeRef, parseFloat(e.target.value) || 0);
         window.deleteExpense = (id) => remove(ref(db, `expenses/${id}`));
 
         onValue(incomeRef, (snap) => {
-            const inc = snap.val() || 0;
-            document.getElementById('incomeInput').value = inc;
-            onValue(expensesRef, (expSnap) => updateUI(expSnap.val(), inc));
-        });
-
-        onValue(expensesRef, (snap) => {
-            const inc = parseFloat(document.getElementById('incomeInput').value) || 0;
-            updateUI(snap.val(), inc);
+            currentStatus.income = snap.val() || 0;
+            document.getElementById('incomeInput').value = currentStatus.income;
+            onValue(expensesRef, (expSnap) => updateUI(expSnap.val(), currentStatus.income));
         });
 
         function updateUI(data, income) {
@@ -379,54 +431,57 @@
                 Object.entries(data).forEach(([id, exp]) => {
                     totals[exp.rule] += exp.amount;
                     const li = document.createElement('li');
-                    li.innerHTML = `
-                        <div class="li-header"><span>${exp.desc}</span><span>R$ ${exp.amount.toFixed(2)}</span></div>
-                        <div style="display:flex; justify-content:space-between; margin-top:5px">
-                            <small style="color:${exp.isFixed?'var(--fixed-label)':'var(--accent)'}">${exp.isFixed?'Fixo':'Variável'}</small>
-                            <i class="fas fa-trash-alt btn-delete" onclick="deleteExpense('${id}')"></i>
-                        </div>`;
+                    li.style.display = "flex";
+                    li.style.justifyContent = "space-between";
+                    li.innerHTML = `<div><div style="font-weight:600">${exp.desc}</div><small style="color:${exp.isFixed?'var(--fixed-label)':'var(--accent)'}">${exp.isFixed?'FIXO':'VARIÁVEL'}</small></div>
+                                    <div style="text-align:right"><div>R$ ${exp.amount.toFixed(2)}</div><i class="fas fa-trash-alt" style="cursor:pointer; font-size:0.8rem; color:#444" onclick="deleteExpense('${id}')"></i></div>`;
                     lists[exp.rule].appendChild(li);
                 });
             }
+
+            currentStatus.spent = totals;
 
             ['50', '30', '20'].forEach(rule => {
                 const limit = income * (parseInt(rule)/100);
                 const spent = totals[rule];
                 const remaining = limit - spent;
                 const perc = limit > 0 ? (spent / limit) * 100 : 0;
-                
-                document.getElementById(`limit-${rule}`).innerText = `Limite: R$ ${limit.toFixed(2)}`;
-                const remEl = document.getElementById(`rem-${rule}`);
-                remEl.innerText = `Resta: R$ ${remaining.toFixed(2)}`;
-                remEl.style.color = remaining < 0 ? 'var(--danger)' : 'var(--success)';
 
+                // UI das Colunas
+                document.getElementById(`limit-${rule}`).innerText = `R$ ${limit.toFixed(2)}`;
+                document.getElementById(`spent-${rule}`).parentElement.querySelector('.val-text').innerText = `- R$ ${spent.toFixed(2)}`;
+                const remEl = document.getElementById(`remaining-${rule}`);
+                remEl.innerText = `R$ ${remaining.toFixed(2)}`;
+                remEl.style.color = remaining <= 0 ? 'var(--danger)' : 'var(--success)';
+                
                 const bar = document.getElementById(`bar-${rule}`);
-                const opt = document.getElementById(`opt-${rule}`);
-                
                 bar.style.width = Math.min(perc, 100) + '%';
-                opt.classList.remove('cat-green', 'cat-yellow', 'cat-red');
+                bar.style.backgroundColor = perc >= 100 ? 'var(--danger)' : (perc > 80 ? 'var(--warning)' : 'var(--success)');
 
+                // --- FEEDBACK NO QUADRADO (PREENCHIMENTO) ---
+                const optBox = document.getElementById(`opt-${rule}`);
+                const fill = document.getElementById(`fill-${rule}`);
+                const icon = document.getElementById(`icon-${rule}`);
+                
+                // Atualiza a altura do preenchimento líquido
+                fill.style.height = Math.min(perc, 100) + '%';
+
+                optBox.classList.remove('status-ok', 'status-warning', 'status-danger');
+                
                 if (perc >= 100) {
-                    bar.style.backgroundColor = 'var(--danger)';
-                    opt.classList.add('cat-red');
-                    categoryStatus[rule] = true;
-                    if(selectedRule === rule) {
-                        selectedRule = null;
-                        opt.classList.remove('selected');
-                    }
-                } else if (perc >= 70) {
-                    bar.style.backgroundColor = 'var(--warning)';
-                    opt.classList.add('cat-yellow');
-                    categoryStatus[rule] = false;
+                    optBox.classList.add('status-danger');
+                    icon.className = `fas fa-lock`;
+                    if(selectedRule === rule) resetCategorySelection();
+                } else if (perc >= 75) {
+                    optBox.classList.add('status-warning');
+                    icon.className = `fas ${iconMap[rule]}`;
                 } else {
-                    bar.style.backgroundColor = 'var(--success)';
-                    opt.classList.add('cat-green');
-                    categoryStatus[rule] = false;
+                    optBox.classList.add('status-ok');
+                    icon.className = `fas ${iconMap[rule]}`;
                 }
             });
 
-            const totalSpent = Object.values(totals).reduce((a, b) => a + b, 0);
-            const balance = income - totalSpent;
+            const balance = income - Object.values(totals).reduce((a, b) => a + b, 0);
             const balEl = document.getElementById('balanceDisplay');
             balEl.innerText = `R$ ${balance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
             balEl.style.color = balance < 0 ? 'var(--danger)' : 'var(--success)';
