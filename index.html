@@ -135,7 +135,6 @@
             gap: 5px;
         }
 
-        /* Classes do Semáforo */
         .cat-green { border-color: var(--success); color: var(--success); }
         .cat-yellow { border-color: var(--warning); color: var(--warning); }
         .cat-red { 
@@ -147,7 +146,8 @@
 
         .category-option.selected {
             background: rgba(255, 255, 255, 0.1);
-            box-shadow: 0 0 10px rgba(255,255,255,0.1);
+            box-shadow: 0 0 10px rgba(0, 173, 181, 0.3);
+            border-color: var(--accent);
         }
 
         .input-group {
@@ -250,7 +250,6 @@
         </div>
 
         <div class="columns-container">
-            <!-- Coluna 50 -->
             <div class="column">
                 <div class="column-header">
                     <h3>Necessidades (50%)</h3>
@@ -263,7 +262,6 @@
                 <ul id="list-50"></ul>
             </div>
 
-            <!-- Coluna 30 -->
             <div class="column">
                 <div class="column-header">
                     <h3>Desejos (30%)</h3>
@@ -276,7 +274,6 @@
                 <ul id="list-30"></ul>
             </div>
 
-            <!-- Coluna 20 -->
             <div class="column">
                 <div class="column-header">
                     <h3>Futuro (20%)</h3>
@@ -314,7 +311,6 @@
         let isFixed = false;
         let categoryStatus = { '50': false, '30': false, '20': false };
 
-        // Toggle Fixo/Variável
         document.getElementById('fixedBtn').onclick = () => {
             isFixed = !isFixed;
             document.getElementById('fixedBtn').classList.toggle('active', isFixed);
@@ -322,7 +318,6 @@
             document.getElementById('fixedLabel').innerText = isFixed ? 'Fixo' : 'Variável';
         };
 
-        // Seleção de Categoria com bloqueio
         document.querySelectorAll('.category-option').forEach(option => {
             option.onclick = function() {
                 const rule = this.getAttribute('data-rule');
@@ -343,22 +338,27 @@
             el.style.display = 'block';
         }
 
-        // Salvar
         document.getElementById('addBtn').onclick = function() {
             const desc = document.getElementById('descInput').value;
             const amount = parseFloat(document.getElementById('amountInput').value);
+            
             if (!selectedRule) return showAlert("Selecione uma categoria!");
             if (!desc || isNaN(amount)) return showAlert("Preencha descrição e valor!");
 
             push(expensesRef, { desc, amount, isFixed, rule: selectedRule, timestamp: Date.now() });
+            
+            // Limpa os campos de texto
             document.getElementById('descInput').value = '';
             document.getElementById('amountInput').value = '';
+            
+            // LIMPA A CATEGORIA SELECIONADA PARA EVITAR ADIÇÃO ERRADA
+            selectedRule = null;
+            document.querySelectorAll('.category-option').forEach(opt => opt.classList.remove('selected'));
         };
 
         document.getElementById('incomeInput').onchange = (e) => set(incomeRef, parseFloat(e.target.value) || 0);
         window.deleteExpense = (id) => remove(ref(db, `expenses/${id}`));
 
-        // UI Update
         onValue(incomeRef, (snap) => {
             const inc = snap.val() || 0;
             document.getElementById('incomeInput').value = inc;
@@ -395,13 +395,11 @@
                 const remaining = limit - spent;
                 const perc = limit > 0 ? (spent / limit) * 100 : 0;
                 
-                // Atualiza textos
                 document.getElementById(`limit-${rule}`).innerText = `Limite: R$ ${limit.toFixed(2)}`;
                 const remEl = document.getElementById(`rem-${rule}`);
                 remEl.innerText = `Resta: R$ ${remaining.toFixed(2)}`;
                 remEl.style.color = remaining < 0 ? 'var(--danger)' : 'var(--success)';
 
-                // Lógica do Semáforo
                 const bar = document.getElementById(`bar-${rule}`);
                 const opt = document.getElementById(`opt-${rule}`);
                 
